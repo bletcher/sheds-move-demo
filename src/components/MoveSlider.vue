@@ -10,9 +10,9 @@ export default {
   props: ['domain'],
   data () {
     return {
-      margin: {top: 20, right: 70, bottom: 30, left: 20},
+      margin: {top: 0, right: 20, bottom: 30, left: 50},
       height: 100,
-      width: 600
+      width: 550
     }
   },
   computed: {
@@ -42,6 +42,7 @@ export default {
 
     this.svg.append("g")
       .attr("class", "brush")
+      .attr('stroke', 'lightgrey')
       .call(this.brush);
 
     this.gAxis = this.svg.append('g')

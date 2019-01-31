@@ -8,11 +8,14 @@ import * as d3 from 'd3'
 
 export default {
   name: 'MoveMap',
-  props: ['dataset', 'width', 'height', 'domain'],
+  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'domain'],
   mounted () {
     this.svg = d3.select(this.$el).append('svg')
-      .attr('width', this.width)
-      .attr('height', this.height)
+      .attr('width', this.widthSVG)
+      .attr('height', this.heightSVG)
+    .append("g")
+      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
+
     this.render()
   },
   watch: {
@@ -24,16 +27,33 @@ export default {
     render () {
       if (!this.dataset) return
 
-      const xScale = d3.scaleLinear().domain(this.domain).range([0, this.width])
-      const yScale = d3.scaleLinear().domain([0, 1]).range([0, this.height])
+      const that = this // for mouseover
+
+      const width = this.widthSVG - this.margin.left - this.margin.right 
+      const height = this.heightSVG - this.margin.top - this.margin.bottom;
+
+      const xScale = d3.scaleLinear().domain(this.domain).range([0, width])
+      const yScale = d3.scaleLinear().domain([-5, 5]).range([height, 0])
 
       const individuals = d3.nest()
         .key(d => d.tag)
         .entries(this.dataset)
 
-      var color = d3.scaleSequential(d3.interpolateSpectral)
+//      var color = d3.scaleSequential(d3.interpolateSpectral)
+      var color = d3.scaleOrdinal(d3.schemeCategory10)
 
       const line = d3.line().x(d => xScale(d.section)).y(d => yScale(d.y))
+
+      this.svg.selectAll('g').remove()
+
+      this.svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(xScale)) 
+
+      this.svg.append("g")
+        .attr("class", "y axis")
+        .call(d3.axisLeft(yScale))  
 
       this.svg.selectAll('path').remove()
       this.svg.selectAll('path')
@@ -42,12 +62,24 @@ export default {
         .append('path')
         .attr('d', d => line(d.values))
         .attr("fill", "none")
-        .attr("stroke", (d, i) => color(i / individuals.length))
+//        .attr("stroke", (d, i) => color((i + 1) / individuals.length / 2))
+        .attr("stroke", (d, i) => color(i + 1))
         .attr("stroke-width", 1)
+        .on('mouseenter', function (d, i) {
+          const ind = i
+          that.svg.selectAll('path')
+            .filter((d, i) => i === ind)
+            .attr("stroke-width", 2)
+        })
+        .on('mouseout', function (d, i) {
+          const ind = i
+          that.svg.selectAll('path')
+            .filter((d, i) => i === ind)
+            .attr("stroke-width", 1)
+        })
 
       this.svg.selectAll('circle').remove()
 
-      const that = this
       this.svg.selectAll('circle')
         .data(this.dataset)
         .enter()
@@ -55,7 +87,8 @@ export default {
         .attr('cx', d => xScale(d.section))
         .attr('cy', d => yScale(d.y))
         .attr('r', 3)
-        .style('stroke', 'black')
+//        .style("fill", (d, i) => color(d.tag / individuals.length / 2))
+        .style("fill", (d, i) => color(d.tag))
         .on('mouseenter', function (d) {
           const tag = d.tag
           that.svg.selectAll('circle')

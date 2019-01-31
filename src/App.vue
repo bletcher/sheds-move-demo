@@ -10,7 +10,7 @@
       <v-container>
         <v-layout row wrap>
           <v-flex xs6>
-            <move-map :dataset="filteredRows" :width="550" :height="200" :domain="xDomain"></move-map>
+            <move-map :dataset="filteredRows" :widthSVG="550" :heightSVG="400" :domain="xDomain" :margin="margin"></move-map>
             <move-slider :domain="this.dateDomain" @brushed="filterDate"></move-slider>
           </v-flex>
           <v-flex xs6>
@@ -20,7 +20,7 @@
               label="Cohort"
               v-model="selectedCohort">
             </v-select>
-            <move-histogram :width="500" :height="250" :data="cohortData" @click="filterCohort"></move-histogram>
+            <move-histogram :width="250" :height="250" :data="cohortData" @click="filterCohort"></move-histogram>
           </v-flex>
         </v-layout>
       </v-container>
@@ -40,7 +40,7 @@ const dimCohort = xf.dimension(d => d.cohort)
 const groupCohort = dimCohort.group()
 
 const dimDate = xf.dimension(d => d.date)
-const groupDate = dimCohort.group()
+//const groupDate = dimCohort.group()
 
 import MoveMap from './components/MoveMap.vue'
 import MoveSlider from './components/MoveSlider.vue'
@@ -59,17 +59,19 @@ export default {
       filteredRows: [],
       cohorts: [],
       selectedCohort: null,
-      dateDomain: [new Date(2000, 0, 1), new Date(2002, 11, 31)],
+      dateDomain: [],
       xDomain: [0, 1],
+      yDomain: [-10,10],
+      margin: {top: 50, right: 50, bottom: 50, left: 50},
       cohortData: []
     }
   },
   mounted () {
-    axios.get('http://localhost:8081/data/pitdata.csv')
+    axios.get('http://localhost:8082/data/dummyData2.csv')
       .then((response) => {
         const dataString = response.data
         const data = d3.csvParse(dataString)
-          .filter(d => d.river === 'WB')
+ //         .filter(d => d.river === 'WB')
           .map(d => ({
             date: new Date(d.date),
             tag: d.tag,
@@ -77,8 +79,8 @@ export default {
             cohort: d.cohort,
             y: Math.random()
           }))
-          .splice(0, 1000)
-
+ //         .splice(0, 1000)
+console.log("data",data)
         const cohorts = []
         data.forEach(d => {
           if (!cohorts.includes(d.cohort)) {
@@ -90,6 +92,7 @@ export default {
         this.dataset = data
         this.filteredRows = this.dataset
         this.dateDomain = d3.extent(this.filteredRows, d => d.date)
+        console.log('dateDomain',this.dateDomain,this.filteredRows)
         this.xDomain = d3.extent(this.dataset, d => d.section)
 
         xf.add(this.dataset)
