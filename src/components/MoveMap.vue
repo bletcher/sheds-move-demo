@@ -38,7 +38,7 @@ export default {
       const individuals = d3.nest()
         .key(d => d.tag)
         .entries(this.dataset)
-
+console.log(individuals)
 //      var color = d3.scaleSequential(d3.interpolateSpectral)
       var color = d3.scaleOrdinal(d3.schemeCategory10)
 
@@ -63,7 +63,8 @@ export default {
         .attr('d', d => line(d.values))
         .attr("fill", "none")
 //        .attr("stroke", (d, i) => color((i + 1) / individuals.length / 2))
-        .attr("stroke", (d, i) => color(i + 1))
+//        .attr("stroke", (d, i) => color(i + 1))
+        .attr("stroke", (d, i) => color(d.key))
         .attr("stroke-width", 1)
         .on('mouseenter', function (d, i) {
           const ind = i

@@ -9,11 +9,11 @@
     <v-content>
       <v-container>
         <v-layout row wrap>
-          <v-flex xs6>
+          <v-flex xs9>
             <move-map :dataset="filteredRows" :widthSVG="550" :heightSVG="400" :domain="xDomain" :margin="margin"></move-map>
             <move-slider :domain="this.dateDomain" @brushed="filterDate"></move-slider>
           </v-flex>
-          <v-flex xs6>
+          <v-flex xs3>
             <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p>
             <v-select
               :items="cohorts"
@@ -59,11 +59,12 @@ export default {
       filteredRows: [],
       cohorts: [],
       selectedCohort: null,
+      cohortData: [],
       dateDomain: [],
       xDomain: [0, 1],
       yDomain: [-10,10],
       margin: {top: 50, right: 50, bottom: 50, left: 50},
-      cohortData: []
+      selectedInds: []
     }
   },
   mounted () {
@@ -72,7 +73,7 @@ export default {
         const dataString = response.data
         const data = d3.csvParse(dataString)
  //         .filter(d => d.river === 'WB')
-          .map(d => ({
+          .map((d,i) => ({
             date: new Date(d.date),
             tag: d.tag,
             section: +d.section,
@@ -80,7 +81,8 @@ export default {
             y: Math.random()
           }))
  //         .splice(0, 1000)
-console.log("data",data)
+console.log("data", data)
+
         const cohorts = []
         data.forEach(d => {
           if (!cohorts.includes(d.cohort)) {
@@ -92,8 +94,8 @@ console.log("data",data)
         this.dataset = data
         this.filteredRows = this.dataset
         this.dateDomain = d3.extent(this.filteredRows, d => d.date)
-        console.log('dateDomain',this.dateDomain,this.filteredRows)
         this.xDomain = d3.extent(this.dataset, d => d.section)
+console.log('dateDomain',this.dateDomain,this.filteredRows,this.xDomain)        
 
         xf.add(this.dataset)
 

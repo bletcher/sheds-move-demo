@@ -42,7 +42,8 @@ export default {
 
     this.svg.append("g")
       .attr("class", "brush")
-      .attr('stroke', 'lightgrey')
+      .attr('stroke', d3.rgb(230, 230, 230))
+      .style("fill", d3.rgb(248, 248, 248))
       .call(this.brush);
 
     this.gAxis = this.svg.append('g')
