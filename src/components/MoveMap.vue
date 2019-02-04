@@ -8,7 +8,7 @@ import * as d3 from 'd3'
 
 export default {
   name: 'MoveMap',
-  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'numInd'],
+  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'numInd', 'indSelected', 'indDeselected'],
   mounted () {
     this.svg = d3.select(this.$el).append('svg')
       .attr('width', this.widthSVG)
@@ -39,8 +39,8 @@ export default {
         .key(d => d.tag)
         .entries(this.dataset)
 
-      const inds = individuals.map((d, i) => d.values[i].tagIndex)  
-console.log("inds", individuals, inds)
+//      const inds = individuals.map((d, i) => d.values[i].tagIndex)  
+console.log("inds", individuals)
 
       var color = d3.scaleSequential(d3.interpolateSpectral)
 //      var color = d3.scaleOrdinal(d3.schemeCategory10)
@@ -94,16 +94,20 @@ console.log("inds", individuals, inds)
         .style("fill", d => color(d.tagIndex / this.numInd / 1))
 //        .style("fill", (d, i) => color(d.tagIndex))
         .on('mouseenter', function (d) {
-          const tag = d.tag
+          const tagIndex = d.tagIndex
           that.svg.selectAll('circle')
-            .filter(d => d.tag === tag)
-            .attr('r', 8)
+            .filter(d => d.tagIndex === tagIndex)
+            .attr('r', 8) 
+
+          that.$emit('indSelected', d)  
         })
         .on('mouseout', function (d) {
-          const tag = d.tag
+          const tagIndex = d.tagIndex
           that.svg.selectAll('circle')
-            .filter(d => d.tag === tag)
+            .filter(d => d.tagIndex === tagIndex)
             .attr('r', 3)
+
+          that.$emit('indDeselected', d)  
         })
         .on('click', d => {
           console.log(d)

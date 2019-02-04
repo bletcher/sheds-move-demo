@@ -10,8 +10,23 @@
       <v-container>
         <v-layout row wrap>
           <v-flex xs9>
-            <move-map :dataset="filteredRows" :widthSVG="550" :heightSVG="400" :xDomain="xDomain" :yDomain="yDomain" :margin="margin" :numInd="numInd"></move-map>
-            <move-slider :domain="this.dateDomain" @brushed="filterDate"></move-slider>
+            <move-map 
+              :dataset="filteredRows" 
+              :widthSVG="550" 
+              :heightSVG="400" 
+              :xDomain="xDomain" 
+              :yDomain="yDomain" 
+              :margin="margin" 
+              :numInd="numInd"
+              @indSelected="onIndSelected" 
+              @indDeselected="onIndDeselected">
+            </move-map>
+            <tooltip
+              v-if="currentInd"
+              :description="currentIndDescription"
+            />
+            <move-slider :domain="this.dateDomain" 
+              @brushed="filterDate"></move-slider>
           </v-flex>
           <v-flex xs3>
             <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p>
@@ -34,7 +49,6 @@ import axios from 'axios'
 import * as d3 from 'd3'
 import * as crossfilter from 'crossfilter2'
 
-
 const xf = crossfilter()
 
 const dimCohort = xf.dimension(d => d.cohort)
@@ -46,13 +60,15 @@ const dimDate = xf.dimension(d => d.date)
 import MoveMap from './components/MoveMap.vue'
 import MoveSlider from './components/MoveSlider.vue'
 import MoveHistogram from './components/MoveHistogram.vue'
+import tooltip from './components/tooltip.vue'
 
 export default {
   name: 'App',
   components: {
     MoveMap,
     MoveSlider,
-    MoveHistogram
+    MoveHistogram,
+    tooltip
   },
   data () {
     return {
@@ -64,8 +80,11 @@ export default {
       dateDomain: [],
       xDomain: [0, 1],
       yDomain: [0, 1],
-      margin: {top: 50, right: 50, bottom: 50, left: 50},
+      margin: {top: 80, right: 50, bottom: 50, left: 50},
       selectedInds: [],
+      uniqueTags: [],
+      currentInd: null,
+      currentDate: null,
       numInd: null
     }
   },
@@ -85,20 +104,20 @@ export default {
  //         .splice(0, 1000)
 
         // get unique tag ids
-        const uniqueTags = [...new Set(dataIn.map(d => d.tag))]
-        this.numInd = uniqueTags.length
+        this.uniqueTags = [...new Set(dataIn.map(d => d.tag))]
+        this.numInd = this.uniqueTags.length
 
         var data = dataIn
 
         // add uniqueTags index to data.tagIndex
         data.forEach(d => {
-          uniqueTags.forEach((dd,i) => {
-            if (d.tag === uniqueTags[i]) {
+          this.uniqueTags.forEach((dd,i) => {
+            if (d.tag === this.uniqueTags[i]) {
               d.tagIndex = i + 1
             }
           }) 
         })
-console.log("data", data, uniqueTags)
+console.log("data", data, this.uniqueTags)
 console.log("numInds", this.numInd)
 
         const cohorts = []
@@ -127,6 +146,12 @@ console.log('dateDomain',this.dateDomain,this.filteredRows,this.xDomain,this.yDo
       this.filterCohort(this.selectedCohort)
     }
   },
+  computed: {
+    currentIndDescription (d) {
+console.log("currentInd", d, this)
+      return "Individual = " + this.currentInd + ", Date = " + this.currentDate.toDateString()
+    }
+  },
   methods: {
     filterDate (d) {
       // console.log('filterDate', d)
@@ -144,12 +169,20 @@ console.log('dateDomain',this.dateDomain,this.filteredRows,this.xDomain,this.yDo
       dimCohort.filterExact(cohort)
       this.onFilter()
       this.dateDomain = d3.extent(this.filteredRows, d => d.date)
-
-console.log('cohorts2', this.cohort, cohort, this.selectedCohort)
     },
     onFilter () {
       this.filteredRows = xf.allFiltered()
+    },
+    onIndSelected (d) {
+      this.currentInd = d.tagIndex
+      this.currentDate = d.date
+console.log("onIndSelected", d, this.currentInd)      
+    },
+    onIndDeselected () {
+      this.currentInd = undefined
     }
+
+
   }
 }
 </script>
