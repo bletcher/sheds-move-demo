@@ -8,7 +8,7 @@ import * as d3 from 'd3'
 
 export default {
   name: 'MoveMap',
-  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'domain'],
+  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'numInd'],
   mounted () {
     this.svg = d3.select(this.$el).append('svg')
       .attr('width', this.widthSVG)
@@ -32,17 +32,20 @@ export default {
       const width = this.widthSVG - this.margin.left - this.margin.right 
       const height = this.heightSVG - this.margin.top - this.margin.bottom;
 
-      const xScale = d3.scaleLinear().domain(this.domain).range([0, width])
-      const yScale = d3.scaleLinear().domain([-5, 5]).range([height, 0])
+      const xScale = d3.scaleLinear().domain(this.xDomain).range([0, width])
+      const yScale = d3.scaleLinear().domain(this.yDomain).range([height, 0])
 
       const individuals = d3.nest()
         .key(d => d.tag)
         .entries(this.dataset)
-console.log(individuals)
-//      var color = d3.scaleSequential(d3.interpolateSpectral)
-      var color = d3.scaleOrdinal(d3.schemeCategory10)
 
-      const line = d3.line().x(d => xScale(d.section)).y(d => yScale(d.y))
+      const inds = individuals.map((d, i) => d.values[i].tagIndex)  
+console.log("inds", individuals, inds)
+
+      var color = d3.scaleSequential(d3.interpolateSpectral)
+//      var color = d3.scaleOrdinal(d3.schemeCategory10)
+
+      const line = d3.line().x(d => xScale(d.xPos)).y(d => yScale(d.yPos))
 
       this.svg.selectAll('g').remove()
 
@@ -64,7 +67,7 @@ console.log(individuals)
         .attr("fill", "none")
 //        .attr("stroke", (d, i) => color((i + 1) / individuals.length / 2))
 //        .attr("stroke", (d, i) => color(i + 1))
-        .attr("stroke", (d, i) => color(d.key))
+        .attr("stroke", (d, i) => color(d.values[i].tagIndex / this.numInd / 1))
         .attr("stroke-width", 1)
         .on('mouseenter', function (d, i) {
           const ind = i
@@ -85,11 +88,11 @@ console.log(individuals)
         .data(this.dataset)
         .enter()
         .append('circle')
-        .attr('cx', d => xScale(d.section))
-        .attr('cy', d => yScale(d.y))
+        .attr('cx', d => xScale(d.xPos))
+        .attr('cy', d => yScale(d.yPos))
         .attr('r', 3)
-//        .style("fill", (d, i) => color(d.tag / individuals.length / 2))
-        .style("fill", (d, i) => color(d.tag))
+        .style("fill", d => color(d.tagIndex / this.numInd / 1))
+//        .style("fill", (d, i) => color(d.tagIndex))
         .on('mouseenter', function (d) {
           const tag = d.tag
           that.svg.selectAll('circle')
