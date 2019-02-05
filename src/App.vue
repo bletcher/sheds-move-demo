@@ -9,6 +9,7 @@
     <v-content>
       <v-container>
         <v-layout row wrap>
+
           <v-flex xs9>
             <tooltip
               v-if="currentInd"
@@ -29,21 +30,101 @@
             </move-map>
             <move-slider :domain="this.dateDomain" 
               @brushed="filterDate"></move-slider>
+            <p></p>
+            <v-divider light></v-divider>
+            <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p>  
           </v-flex>
+
+
+
+
+
           <v-flex xs3>
-            <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p>
-            <v-select 
-              :items="cohorts"
-              label="Cohort"
-              v-model="selectedCohort"
-              multiple>
-            </v-select>
-            <move-histogram :width="250" :height="250" :data="cohortData" @click="filterCohort"></move-histogram>
-            <v-checkbox
-              v-model="seasonCheckbox"
-              :label="`Code shape by season: ${seasonCheckbox.toString()}`"
-            ></v-checkbox> 
+            
+            <div
+              id="e3"
+              style="max-width: 400px; margin: auto;"
+              class="grey lighten-3"
+            >
+
+              <v-card>
+                <v-container
+                  fluid
+                  grid-list-lg
+                >
+                  <v-layout row wrap>
+
+
+                    <v-flex xs12>
+                      <v-card color="blue-grey darken-2" class="white--text">
+                        <v-card-title primary-title>
+                          <div class="headline">Group</div>
+
+                          <v-container fluid>
+                            <v-radio-group v-model="radiosGroup" :mandatory="true">
+                              <v-radio label="Individual" value="radio-group-individual"></v-radio>
+                              <v-radio label="Season" value="radio-group-season"></v-radio>
+                            </v-radio-group>
+                          </v-container>
+
+                        </v-card-title>
+
+                      </v-card>
+                    </v-flex>
+
+
+                    <v-flex xs12>
+                      <v-card color="blue-grey darken-2" class="white--text">
+                        <v-card-title primary-title>
+                          <div class="headline">Filter</div>
+
+                          <v-select 
+                            :items="cohorts"
+                            label="Cohort"
+                            v-model="selectedCohort"
+                            multiple>
+                          </v-select>
+                          <move-histogram :width="175" :height="175" :data="cohortData" @click="filterCohort"></move-histogram>
+                        </v-card-title>
+
+                      </v-card>
+                    </v-flex>
+
+
+                    <v-flex xs12>
+                      <v-card color="blue-grey darken-2" class="white--text">
+                        <v-card-title primary-title>
+                          <div class="headline">Select</div>
+
+                          <v-container fluid>
+                            <v-radio-group v-model="radiosSelect" :mandatory="true">
+                              <v-radio label="Individual" value="radio-select-individual"></v-radio>
+                              <v-radio label="Area" value="radio-select-area"></v-radio>
+                            </v-radio-group>
+                          </v-container>
+
+                        </v-card-title>
+
+                      </v-card>
+                    </v-flex>
+
+
+
+                  </v-layout>
+                </v-container>
+              </v-card>
+
+            </div>
+
           </v-flex>
+
+
+
+
+
+
+
+
         </v-layout>
       </v-container>
     </v-content>
@@ -93,7 +174,9 @@ export default {
       currentInd: null,
       currentDate: null,
       numInd: null,
-      seasonCheckbox: false
+      seasonCheckbox: false,
+      radiosGroup: 'radio-group-individual',
+      radiosSelect: 'radio-select-individual'
     }
   },
   mounted () {
