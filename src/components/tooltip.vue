@@ -17,19 +17,20 @@
 
 <style scoped>
 #tooltipPositioner {
-  position: absolute;
-  top: 5%;
+  position: relative;
+  top: 5px;
+  left: 45px;
   
 }
 #tooltipContainer {
   position: relative;
   font-size: 12px;
   line-height: 16px;
-  padding: 10px;
+  padding: 5px;
   border-radius: 3px;
   background: rgba(255,255,255,0.9);
   color: #000;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
   -moz-box-shadow: 0 1px 5px rgba(0,0,0,0.4);
   border:1px solid rgba(200,200,200,0.85);
   text-align:center;
@@ -44,7 +45,6 @@
   color:#666;
   font-size: 11px;
   text-align: center;
-  font-style: italic;
 }
 
 </style>

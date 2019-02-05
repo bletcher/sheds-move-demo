@@ -10,21 +10,23 @@
       <v-container>
         <v-layout row wrap>
           <v-flex xs9>
+            <tooltip
+              v-if="currentInd"
+              :description="currentIndDescription"
+            />
             <move-map 
               :dataset="filteredRows" 
               :widthSVG="550" 
               :heightSVG="400" 
               :xDomain="xDomain" 
               :yDomain="yDomain" 
+              :bodySizeDomain="bodySizeDomain"
               :margin="margin" 
               :numInd="numInd"
               @indSelected="onIndSelected" 
-              @indDeselected="onIndDeselected">
+              @indDeselected="onIndDeselected"
+              :seasonCheckbox="seasonCheckbox">
             </move-map>
-            <tooltip
-              v-if="currentInd"
-              :description="currentIndDescription"
-            />
             <move-slider :domain="this.dateDomain" 
               @brushed="filterDate"></move-slider>
           </v-flex>
@@ -37,6 +39,10 @@
               multiple>
             </v-select>
             <move-histogram :width="250" :height="250" :data="cohortData" @click="filterCohort"></move-histogram>
+            <v-checkbox
+              v-model="seasonCheckbox"
+              :label="`Code shape by season: ${seasonCheckbox.toString()}`"
+            ></v-checkbox> 
           </v-flex>
         </v-layout>
       </v-container>
@@ -80,12 +86,14 @@ export default {
       dateDomain: [],
       xDomain: [0, 1],
       yDomain: [0, 1],
-      margin: {top: 80, right: 50, bottom: 50, left: 50},
+      bodySizeDomain: [],
+      margin: {top: 50, right: 50, bottom: 50, left: 50},
       selectedInds: [],
       uniqueTags: [],
       currentInd: null,
       currentDate: null,
-      numInd: null
+      numInd: null,
+      seasonCheckbox: false
     }
   },
   mounted () {
@@ -99,6 +107,7 @@ export default {
             tag: d.tag,
             xPos: +d.xPos,
             yPos: +d.yPos,
+            bodySize: +d.bodySize,
             cohort: d.cohort
           }))
  //         .splice(0, 1000)
@@ -108,14 +117,17 @@ export default {
         this.numInd = this.uniqueTags.length
 
         var data = dataIn
+        const getSeason = d => Math.floor((d.getMonth() / 12 * 4)) % 4
 
-        // add uniqueTags index to data.tagIndex
+        // add uniqueTag index to data.tagIndex
+        // add season
         data.forEach(d => {
           this.uniqueTags.forEach((dd,i) => {
             if (d.tag === this.uniqueTags[i]) {
               d.tagIndex = i + 1
             }
-          }) 
+          })
+          d.season = getSeason(d.date)
         })
 console.log("data", data, this.uniqueTags)
 console.log("numInds", this.numInd)
@@ -127,14 +139,13 @@ console.log("numInds", this.numInd)
           }
         })
         this.cohorts = cohorts.sort()
-console.log('cohorts', this.cohorts, cohorts, this.selectedCohort)
 
         this.dataset = data
         this.filteredRows = this.dataset
         this.dateDomain = d3.extent(this.filteredRows, d => d.date)
         this.xDomain = d3.extent(this.dataset, d => d.xPos)
         this.yDomain = d3.extent(this.dataset, d => d.yPos)
-console.log('dateDomain',this.dateDomain,this.filteredRows,this.xDomain,this.yDomain)        
+        this.bodySizeDomain = d3.extent(this.dataset, d => d.bodySize)      
 
         xf.add(this.dataset)
 
@@ -148,8 +159,7 @@ console.log('dateDomain',this.dateDomain,this.filteredRows,this.xDomain,this.yDo
   },
   computed: {
     currentIndDescription (d) {
-console.log("currentInd", d, this)
-      return "Individual = " + this.currentInd + ", Date = " + this.currentDate.toDateString()
+      return "Individual: " + this.currentInd + ", Date: " + this.currentDate.toDateString() 
     }
   },
   methods: {
@@ -175,8 +185,7 @@ console.log("currentInd", d, this)
     },
     onIndSelected (d) {
       this.currentInd = d.tagIndex
-      this.currentDate = d.date
-console.log("onIndSelected", d, this.currentInd)      
+      this.currentDate = d.date    
     },
     onIndDeselected () {
       this.currentInd = undefined

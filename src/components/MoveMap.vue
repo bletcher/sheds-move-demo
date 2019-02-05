@@ -8,7 +8,7 @@ import * as d3 from 'd3'
 
 export default {
   name: 'MoveMap',
-  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'numInd', 'indSelected', 'indDeselected'],
+  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indSelected', 'indDeselected'],
   mounted () {
     this.svg = d3.select(this.$el).append('svg')
       .attr('width', this.widthSVG)
@@ -34,13 +34,11 @@ export default {
 
       const xScale = d3.scaleLinear().domain(this.xDomain).range([0, width])
       const yScale = d3.scaleLinear().domain(this.yDomain).range([height, 0])
+      const bodySizeScale = d3.scaleLinear().domain(this.bodySizeDomain).range([3, 8])
 
       const individuals = d3.nest()
         .key(d => d.tag)
         .entries(this.dataset)
-
-//      const inds = individuals.map((d, i) => d.values[i].tagIndex)  
-console.log("inds", individuals)
 
       var color = d3.scaleSequential(d3.interpolateSpectral)
 //      var color = d3.scaleOrdinal(d3.schemeCategory10)
@@ -65,9 +63,7 @@ console.log("inds", individuals)
         .append('path')
         .attr('d', d => line(d.values))
         .attr("fill", "none")
-//        .attr("stroke", (d, i) => color((i + 1) / individuals.length / 2))
-//        .attr("stroke", (d, i) => color(i + 1))
-        .attr("stroke", (d, i) => color(d.values[i].tagIndex / this.numInd / 1))
+        .attr("stroke", d => color(d.values[0].tagIndex / this.numInd / 1)) // 1 color/ind, just use first obs
         .attr("stroke-width", 1)
         .on('mouseenter', function (d, i) {
           const ind = i
@@ -90,14 +86,14 @@ console.log("inds", individuals)
         .append('circle')
         .attr('cx', d => xScale(d.xPos))
         .attr('cy', d => yScale(d.yPos))
-        .attr('r', 3)
+        .attr('r', d => bodySizeScale(d.bodySize))
         .style("fill", d => color(d.tagIndex / this.numInd / 1))
 //        .style("fill", (d, i) => color(d.tagIndex))
         .on('mouseenter', function (d) {
           const tagIndex = d.tagIndex
           that.svg.selectAll('circle')
             .filter(d => d.tagIndex === tagIndex)
-            .attr('r', 8) 
+            .attr('r', 9) 
 
           that.$emit('indSelected', d)  
         })
@@ -105,7 +101,7 @@ console.log("inds", individuals)
           const tagIndex = d.tagIndex
           that.svg.selectAll('circle')
             .filter(d => d.tagIndex === tagIndex)
-            .attr('r', 3)
+            .attr('r', d => bodySizeScale(d.bodySize))
 
           that.$emit('indDeselected', d)  
         })
