@@ -24,20 +24,20 @@
               :bodySizeDomain="bodySizeDomain"
               :margin="margin" 
               :numInd="numInd"
-              @indSelected="onIndSelected" 
-              @indDeselected="onIndDeselected"
-              :seasonCheckbox="seasonCheckbox">
+              @indHovered="onIndHovered" 
+              @indUnhovered="onIndUnhovered"
+              :radiosGroup="radiosGroup"
+              :radiosSelect="radiosSelect"
+              :selectedInds="selectedInds">
             </move-map>
             <move-slider :domain="this.dateDomain" 
               @brushed="filterDate"></move-slider>
             <p></p>
             <v-divider light></v-divider>
-            <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p>  
+            <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p> 
+            <p># Selected Individual(s): {{ selectedInds }}</p> 
+             
           </v-flex>
-
-
-
-
 
           <v-flex xs3>
             
@@ -56,7 +56,7 @@
 
 
                     <v-flex xs12>
-                      <v-card color="blue-grey darken-2" class="white--text">
+                      <v-card color="blue-grey darken-1" class="white--text">
                         <v-card-title primary-title>
                           <div class="headline">Group</div>
 
@@ -100,6 +100,7 @@
                             <v-radio-group v-model="radiosSelect" :mandatory="true">
                               <v-radio label="Individual" value="radio-select-individual"></v-radio>
                               <v-radio label="Area" value="radio-select-area"></v-radio>
+                              <v-radio label="None" value="radio-select-none"></v-radio>
                             </v-radio-group>
                           </v-container>
 
@@ -108,8 +109,6 @@
                       </v-card>
                     </v-flex>
 
-
-
                   </v-layout>
                 </v-container>
               </v-card>
@@ -117,13 +116,6 @@
             </div>
 
           </v-flex>
-
-
-
-
-
-
-
 
         </v-layout>
       </v-container>
@@ -173,6 +165,7 @@ export default {
       uniqueTags: [],
       currentInd: null,
       currentDate: null,
+      currentSeason: null,
       numInd: null,
       seasonCheckbox: false,
       radiosGroup: 'radio-group-individual',
@@ -213,7 +206,7 @@ export default {
           d.season = getSeason(d.date)
         })
 console.log("data", data, this.uniqueTags)
-console.log("numInds", this.numInd)
+console.log("numInds", this.numInd, this.radiosGroup)
 
         const cohorts = []
         data.forEach(d => {
@@ -239,10 +232,11 @@ console.log("numInds", this.numInd)
     selectedCohort () {
       this.filterCohort(this.selectedCohort)
     }
+
   },
   computed: {
     currentIndDescription (d) {
-      return "Individual: " + this.currentInd + ", Date: " + this.currentDate.toDateString() 
+      return "Individual: " + this.currentInd + ", Date: " + this.currentDate.toDateString() + ", Season: "+ this.currentSeason 
     }
   },
   methods: {
@@ -266,11 +260,12 @@ console.log("numInds", this.numInd)
     onFilter () {
       this.filteredRows = xf.allFiltered()
     },
-    onIndSelected (d) {
+    onIndHovered (d) {
       this.currentInd = d.tagIndex
-      this.currentDate = d.date    
+      this.currentDate = d.date 
+      this.currentSeason = d.season    
     },
-    onIndDeselected () {
+    onIndUnhovered () {
       this.currentInd = undefined
     }
 

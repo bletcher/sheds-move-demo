@@ -1,3 +1,6 @@
+<!-- https://github.com/CorpGlory/d3vue/blob/master/src/d3-components/basic-map-tooltip/index.vue
+-->
+
 <template>
 <div id="tooltipPositioner">
   <div id="tooltip">

@@ -8,7 +8,7 @@ import * as d3 from 'd3'
 
 export default {
   name: 'MoveMap',
-  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indSelected', 'indDeselected'],
+  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indHovered', 'indUnhovered', 'radiosGroup', 'radiosSelect', 'selectedInds'],
   mounted () {
     this.svg = d3.select(this.$el).append('svg')
       .attr('width', this.widthSVG)
@@ -20,6 +20,9 @@ export default {
   },
   watch: {
     dataset () {
+      this.render()
+    },
+    radiosGroup () {
       this.render()
     }
   },
@@ -87,15 +90,20 @@ export default {
         .attr('cx', d => xScale(d.xPos))
         .attr('cy', d => yScale(d.yPos))
         .attr('r', d => bodySizeScale(d.bodySize))
-        .style("fill", d => color(d.tagIndex / this.numInd / 1))
-//        .style("fill", (d, i) => color(d.tagIndex))
+        .style("fill", function (d) {
+          if (that.radiosGroup == 'radio-group-individual') {            
+            return color(d.tagIndex / that.numInd / 1) 
+          }
+          else { return color(d.season / 4 / 1) }
+        ;})
+
         .on('mouseenter', function (d) {
           const tagIndex = d.tagIndex
           that.svg.selectAll('circle')
             .filter(d => d.tagIndex === tagIndex)
-            .attr('r', 9) 
+            .attr('r', 9) // 1 bigger than upper range on bodySizeScale 
 
-          that.$emit('indSelected', d)  
+          that.$emit('indHovered', d)  
         })
         .on('mouseout', function (d) {
           const tagIndex = d.tagIndex
@@ -103,10 +111,16 @@ export default {
             .filter(d => d.tagIndex === tagIndex)
             .attr('r', d => bodySizeScale(d.bodySize))
 
-          that.$emit('indDeselected', d)  
+          that.$emit('indUnhovered', d)  
         })
         .on('click', d => {
-          console.log(d)
+          console.log("tagIndex",d.tagIndex)
+          if(this.radiosSelect === 'radio-select-individual') {
+            if (!this.selectedInds.includes(d.tagIndex)) {
+              this.selectedInds.push(d.tagIndex)
+              this.selectedInds.sort()
+            }  
+          }
         })
     }
   }
