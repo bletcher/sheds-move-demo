@@ -28,7 +28,8 @@
               @indUnhovered="onIndUnhovered"
               :radiosGroup="radiosGroup"
               :radiosSelect="radiosSelect"
-              :selectedInds="selectedInds">
+              :selectedInds="selectedInds"
+              @onEmptySelectedInds="onEmptySelectedInds">
             </move-map>
             <move-slider :domain="this.dateDomain" 
               @brushed="filterDate"></move-slider>
@@ -235,7 +236,7 @@ console.log("numInds", this.numInd, this.radiosGroup)
 
   },
   computed: {
-    currentIndDescription (d) {
+    currentIndDescription () {
       return "Individual: " + this.currentInd + ", Date: " + this.currentDate.toDateString() + ", Season: "+ this.currentSeason 
     }
   },
@@ -267,6 +268,9 @@ console.log("numInds", this.numInd, this.radiosGroup)
     },
     onIndUnhovered () {
       this.currentInd = undefined
+    },
+    onEmptySelectedInds (d) {
+      this.selectedInds = d
     }
 
 

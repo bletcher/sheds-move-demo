@@ -10,13 +10,24 @@ export default {
   name: 'MoveMap',
   props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indHovered', 'indUnhovered', 'radiosGroup', 'radiosSelect', 'selectedInds'],
   mounted () {
+
     this.svg = d3.select(this.$el).append('svg')
       .attr('width', this.widthSVG)
       .attr('height', this.heightSVG)
+      .on('click', d => {
+        //  this.selectedInds = [] 
+          this.emptySelectedInds()
+          console.log('click svg') 
+      })
     .append("g")
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
 
     this.render()
+  },
+  data () {
+    return {
+      emptyInds: this.selectedInds
+    }
   },
   watch: {
     dataset () {
@@ -60,6 +71,7 @@ export default {
         .call(d3.axisLeft(yScale))  
 
       this.svg.selectAll('path').remove()
+
       this.svg.selectAll('path')
         .data(individuals)
         .enter()
@@ -91,7 +103,7 @@ export default {
         .attr('cy', d => yScale(d.yPos))
         .attr('r', d => bodySizeScale(d.bodySize))
         .style("fill", function (d) {
-          if (that.radiosGroup == 'radio-group-individual') {            
+          if (that.radiosGroup === 'radio-group-individual') {            
             return color(d.tagIndex / that.numInd / 1) 
           }
           else { return color(d.season / 4 / 1) }
@@ -115,6 +127,7 @@ export default {
         })
         .on('click', d => {
           console.log("tagIndex",d.tagIndex)
+          d3.event.stopPropagation() // does not allow svg.on('click') to fire - so only fires 'circle' not 'circle and 'svg'
           if(this.radiosSelect === 'radio-select-individual') {
             if (!this.selectedInds.includes(d.tagIndex)) {
               this.selectedInds.push(d.tagIndex)
@@ -122,7 +135,12 @@ export default {
             }  
           }
         })
+
+    },
+    emptySelectedInds() {
+      this.$emit("onEmptySelectedInds", [])
     }
+
   }
 }
 </script>
