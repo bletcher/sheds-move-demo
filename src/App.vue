@@ -47,7 +47,6 @@
               style="max-width: 400px; margin: auto;"
               class="grey lighten-3"
             >
-
               <v-card>
                 <v-container
                   fluid
@@ -78,13 +77,6 @@
                       <v-card color="blue-grey darken-2" class="white--text">
                         <v-card-title primary-title>
                           <div class="headline">Filter</div>
-
-                          <v-select 
-                            :items="cohorts"
-                            label="Cohort"
-                            v-model="selectedCohort"
-                            multiple>
-                          </v-select>
                           <move-histogram :width="175" :height="175" :data="cohortData" @click="filterCohort"></move-histogram>
                         </v-card-title>
 
@@ -101,13 +93,13 @@
                             <v-radio-group v-model="radiosSelect" :mandatory="true">
                               <v-radio label="Individual" value="radio-select-individual"></v-radio>
                               <v-radio label="Area" value="radio-select-area"></v-radio>
-                              <v-radio label="None" value="radio-select-none"></v-radio>
                             </v-radio-group>
                           </v-container>
 
                         </v-card-title>
 
                       </v-card>
+            
                     </v-flex>
 
                   </v-layout>
@@ -271,6 +263,7 @@ console.log("numInds", this.numInd, this.radiosGroup)
     },
     onEmptySelectedInds (d) {
       this.selectedInds = d
+      //https://codepen.io/Kradek/pen/ZKKGNJ?editors=1010
     }
 
 

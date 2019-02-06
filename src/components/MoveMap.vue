@@ -15,9 +15,7 @@ export default {
       .attr('width', this.widthSVG)
       .attr('height', this.heightSVG)
       .on('click', d => {
-        //  this.selectedInds = [] 
           this.emptySelectedInds()
-          console.log('click svg') 
       })
     .append("g")
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
@@ -26,7 +24,8 @@ export default {
   },
   data () {
     return {
-      emptyInds: this.selectedInds
+      emptyInds: this.selectedInds,
+      circles: null
     }
   },
   watch: {
@@ -34,6 +33,9 @@ export default {
       this.render()
     },
     radiosGroup () {
+      this.render()
+    },
+    selectedInds () {
       this.render()
     }
   },
@@ -80,6 +82,13 @@ export default {
         .attr("fill", "none")
         .attr("stroke", d => color(d.values[0].tagIndex / this.numInd / 1)) // 1 color/ind, just use first obs
         .attr("stroke-width", 1)
+        .attr('stroke-opacity', function (d) {
+          if (that.selectedInds.includes(d.values[0].tagIndex) || that.selectedInds.length === 0) {
+            return 1
+          } else {
+            return 0.25
+          }
+        })
         .on('mouseenter', function (d, i) {
           const ind = i
           that.svg.selectAll('path')
@@ -95,20 +104,26 @@ export default {
 
       this.svg.selectAll('circle').remove()
 
-      this.svg.selectAll('circle')
+      var circles = this.svg.selectAll('circle')
         .data(this.dataset)
         .enter()
         .append('circle')
         .attr('cx', d => xScale(d.xPos))
         .attr('cy', d => yScale(d.yPos))
         .attr('r', d => bodySizeScale(d.bodySize))
-        .style("fill", function (d) {
+        .attr("fill", function (d) {
           if (that.radiosGroup === 'radio-group-individual') {            
             return color(d.tagIndex / that.numInd / 1) 
           }
           else { return color(d.season / 4 / 1) }
         ;})
-
+        .attr('fill-opacity', function (d) {
+          if (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) {
+            return 1
+          } else {
+            return 0.25
+          }
+        })
         .on('mouseenter', function (d) {
           const tagIndex = d.tagIndex
           that.svg.selectAll('circle')
@@ -135,12 +150,10 @@ export default {
             }  
           }
         })
-
     },
     emptySelectedInds() {
       this.$emit("onEmptySelectedInds", [])
     }
-
   }
 }
 </script>
