@@ -86,7 +86,7 @@ export default {
           if (that.selectedInds.includes(d.values[0].tagIndex) || that.selectedInds.length === 0) {
             return 1
           } else {
-            return 0.25
+            return 0.01
           }
         })
         .on('mouseenter', function (d, i) {
@@ -121,7 +121,7 @@ export default {
           if (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) {
             return 1
           } else {
-            return 0.25
+            return 0.15
           }
         })
         .on('mouseenter', function (d) {
@@ -129,6 +129,7 @@ export default {
           that.svg.selectAll('circle')
             .filter(d => d.tagIndex === tagIndex)
             .attr('r', 9) // 1 bigger than upper range on bodySizeScale 
+            .attr('fill-opacity', 1)
 
           that.$emit('indHovered', d)  
         })
@@ -137,17 +138,31 @@ export default {
           that.svg.selectAll('circle')
             .filter(d => d.tagIndex === tagIndex)
             .attr('r', d => bodySizeScale(d.bodySize))
-
+            .attr('fill-opacity', function (d) {
+              if (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) {
+                 return 1
+              } else {
+                return 0.15
+              }   
+            }) 
+          
           that.$emit('indUnhovered', d)  
         })
         .on('click', d => {
           console.log("tagIndex",d.tagIndex)
+          //d3.select(this).raise()  
           d3.event.stopPropagation() // does not allow svg.on('click') to fire - so only fires 'circle' not 'circle and 'svg'
           if(this.radiosSelect === 'radio-select-individual') {
-            if (!this.selectedInds.includes(d.tagIndex)) {
+            if (!this.selectedInds.includes(d.tagIndex)) { // ind is not selected              
               this.selectedInds.push(d.tagIndex)
-              this.selectedInds.sort()
-            }  
+              this.selectedInds.sort((a, b) => a - b) // (a,b)... needed to sort numbers             
+            } else { // ind is selected
+              const indexToRemove = this.selectedInds.indexOf(d.tagIndex)
+              if(indexToRemove > -1) {                
+                this.selectedInds.splice(indexToRemove, 1)               
+                this.selectedInds.sort((a, b) => a - b)                 
+              }             
+            }
           }
         })
     },

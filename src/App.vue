@@ -77,6 +77,7 @@
                       <v-card color="blue-grey darken-2" class="white--text">
                         <v-card-title primary-title>
                           <div class="headline">Filter</div>
+                          <div class="text-xs-center"><v-btn small color="blue-grey darken-1" @click="resetXF">Reset</v-btn></div>
                           <move-histogram :width="175" :height="175" :data="cohortData" @click="filterCohort"></move-histogram>
                         </v-card-title>
 
@@ -157,6 +158,7 @@ export default {
       selectedInds: [],
       uniqueTags: [],
       currentInd: null,
+      currentIndIndex: null,
       currentDate: null,
       currentSeason: null,
       numInd: null,
@@ -166,7 +168,8 @@ export default {
     }
   },
   mounted () {
-    axios.get('http://localhost:8082/data/dummyData3.csv')
+    axios.get('http://localhost:8082/data/pitdata.csv')
+    //     axios.get('http://localhost:8082/data/dummyData3.csv')
       .then((response) => {
         const dataString = response.data
         const dataIn = d3.csvParse(dataString)
@@ -174,12 +177,15 @@ export default {
           .map(d => ({
             date: new Date(d.date),
             tag: d.tag,
-            xPos: +d.xPos,
-            yPos: +d.yPos,
-            bodySize: +d.bodySize,
+            xPos: +d.section,
+    //                    xPos: +d.xPos,
+            yPos: Math.random(),
+    //                    yPos: +d.yPos,
+            bodySize: +d.len,
+   //                     bodySize: +d.bodySize,
             cohort: d.cohort
           }))
- //         .splice(0, 1000)
+          .splice(0, 5000)
 
         // get unique tag ids
         this.uniqueTags = [...new Set(dataIn.map(d => d.tag))]
@@ -229,7 +235,7 @@ console.log("numInds", this.numInd, this.radiosGroup)
   },
   computed: {
     currentIndDescription () {
-      return "Individual: " + this.currentInd + ", Date: " + this.currentDate.toDateString() + ", Season: "+ this.currentSeason 
+      return "Tag#: " + this.currentInd + ", IndIndex: " + this.currentIndIndex + ", Date: " + this.currentDate.toDateString() + ", Season: "+ this.currentSeason 
     }
   },
   methods: {
@@ -253,8 +259,12 @@ console.log("numInds", this.numInd, this.radiosGroup)
     onFilter () {
       this.filteredRows = xf.allFiltered()
     },
+    resetXF () {
+      this.filteredRows = xf.all()
+    },
     onIndHovered (d) {
-      this.currentInd = d.tagIndex
+      this.currentInd = d.tag
+      this.currentIndIndex = d.tagIndex
       this.currentDate = d.date 
       this.currentSeason = d.season    
     },

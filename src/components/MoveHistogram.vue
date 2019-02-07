@@ -61,6 +61,7 @@ export default {
       this.gBar
         .selectAll("rect")
         .remove()
+        
       this.gBar
         .selectAll("rect")
         .data(this.data)
