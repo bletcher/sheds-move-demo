@@ -8,7 +8,7 @@ import * as d3 from 'd3'
 
 export default {
   name: 'MoveMap',
-  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indHovered', 'indUnhovered', 'radiosGroup', 'radiosSelect', 'selectedInds'],
+  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indHovered', 'indUnhovered', 'radiosGroup', 'radiosSelect', 'selectedInds','showInactive'],
   mounted () {
 
     this.svg = d3.select(this.$el).append('svg')
@@ -82,13 +82,7 @@ export default {
         .attr("fill", "none")
         .attr("stroke", d => color(d.values[0].tagIndex / this.numInd / 1)) // 1 color/ind, just use first obs
         .attr("stroke-width", 1)
-        .attr('stroke-opacity', function (d) {
-          if (that.selectedInds.includes(d.values[0].tagIndex) || that.selectedInds.length === 0) {
-            return 1
-          } else {
-            return 0.01
-          }
-        })
+        .attr('stroke-opacity', d => (that.selectedInds.includes(d.values[0].tagIndex) || that.selectedInds.length === 0) ? 1 : 0.1)
         .on('mouseenter', function (d, i) {
           const ind = i
           that.svg.selectAll('path')
@@ -111,19 +105,10 @@ export default {
         .attr('cx', d => xScale(d.xPos))
         .attr('cy', d => yScale(d.yPos))
         .attr('r', d => bodySizeScale(d.bodySize))
-        .attr("fill", function (d) {
-          if (that.radiosGroup === 'radio-group-individual') {            
-            return color(d.tagIndex / that.numInd / 1) 
-          }
-          else { return color(d.season / 4 / 1) }
-        ;})
-        .attr('fill-opacity', function (d) {
-          if (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) {
-            return 1
-          } else {
-            return 0.1
-          }
-        })
+        .attr("fill", d => that.radiosGroup === 'radio-group-individual' ? color(d.tagIndex / that.numInd / 1) : color(d.season / 4 / 1))       
+        .attr('fill-opacity', d => (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) ? 1 : 0.1)
+        .attr("stroke", d => d.active === 0 ? "black" : "transparent")
+        .attr('stroke-opacity', d => (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) ? 1 : 0.1)
         .on('mouseenter', function (d) {
           const tagIndex = d.tagIndex
           that.svg.selectAll('circle')
@@ -138,14 +123,7 @@ export default {
           that.svg.selectAll('circle')
             .filter(d => d.tagIndex === tagIndex)
             .attr('r', d => bodySizeScale(d.bodySize))
-            .attr('fill-opacity', function (d) {
-              if (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) {
-                 return 1
-              } else {
-                return 0.1
-              }   
-            }) 
-          
+            .attr('fill-opacity', d => (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) ? 1 : 0.1)          
           that.$emit('indUnhovered', d)  
         })
         .on('click', d => {

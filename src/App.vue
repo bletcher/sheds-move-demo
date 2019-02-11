@@ -51,17 +51,17 @@
               <v-card>
                 <v-container
                   fluid
-                  grid-list-lg
+                  grid-list-md
                 >
                   <v-layout row wrap>
 
 
                     <v-flex xs12>
-                      <v-card color="blue-grey darken-1" class="white--text">
+                      <v-card color="blue-grey darken-1" class="white--text" height="max-content">
                         <v-card-title primary-title>
                           <div class="headline">Color</div>
 
-                          <v-container fluid>
+                          <v-container fluid fill-height>
                             <v-radio-group v-model="radiosGroup" :mandatory="true">
                               <v-radio label="Individual" value="radio-group-individual"></v-radio>
                               <v-radio label="Season" value="radio-group-season"></v-radio>
@@ -78,8 +78,10 @@
                       <v-card color="blue-grey darken-2" class="white--text">
                         <v-card-title primary-title>
                           <div class="headline">Filter</div>
+
                           <div class="text-xs-center"><v-btn small color="blue-grey darken-1" @click="resetXF">Reset</v-btn></div>
                           <move-histogram :width="175" :height="175" :data="cohortData" @click="filterCohort"></move-histogram>
+                          <div class="text-xs-center"><v-btn small color="blue-grey darken-1" @click="buttonInactive">{{ showInactiveLabel }}</v-btn></div>
                         </v-card-title>
 
                       </v-card>
@@ -165,7 +167,9 @@ export default {
       numInd: null,
       seasonCheckbox: false,
       radiosGroup: 'radio-group-individual',
-      radiosSelect: 'radio-select-individual'
+      radiosSelect: 'radio-select-individual',
+      showInactive: false,
+      showInactiveLabel: "Show inactive"
     }
   },
   mounted () {
@@ -202,9 +206,11 @@ export default {
             xPos: +d.long,
             yPos: +d.lat,
             bodySize: +d.totalLength,
-            cohort: d.releaseLocation
+            cohort: d.releaseLocation,
+            active: +d.active
           }))
 //         .splice(0, 5000)     
+//////////////////////////////////////////////////////////////
 
         // get unique tag ids
         this.uniqueTags = [...new Set(dataIn.map(d => d.tag))]
@@ -291,6 +297,15 @@ console.log('reset',this.selectedCohort)
      // this.filteredRows = xf.all()
      // this.dateDomain = d3.extent(this.filteredRows, d => d.date)
       //this.selectedCohort = []
+    },
+    buttonInactive (){
+      this.showInactive = !this.showInactive
+      if (this.showInactive) {
+        this.showInactiveLabel = "Show all" }
+      else { 
+        this.showInactiveLabel = "Show inactive"
+      }  
+      console.log('showInactive:', this.showInactive, this.showInactiveLabel)
     },
     onIndHovered (d) {
       this.currentInd = d.tag
