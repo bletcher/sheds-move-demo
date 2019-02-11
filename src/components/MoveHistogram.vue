@@ -58,6 +58,7 @@ export default {
   },
   methods: {
     render () {
+      const that = this
       this.gBar
         .selectAll("rect")
         .remove()
@@ -73,6 +74,11 @@ export default {
         .attr("width", this.xScale.bandwidth())
         .on('click', (d) => {
           this.$emit('click', d.key)
+        })
+        .on('mouseenter', function (d) {
+          this.svg.selectAll("rect")
+            .attr("fill", 'red') 
+       
         });
 
       this.gXAxis.call(this.xAxis)

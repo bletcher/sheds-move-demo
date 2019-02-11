@@ -37,7 +37,8 @@
             <v-divider light></v-divider>
             <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p> 
             <p># Selected Individual(s): {{ selectedInds }}</p> 
-             
+            <p># Selected cohort(s): {{ selectedCohort }}</p> 
+
           </v-flex>
 
           <v-flex xs3>
@@ -58,7 +59,7 @@
                     <v-flex xs12>
                       <v-card color="blue-grey darken-1" class="white--text">
                         <v-card-title primary-title>
-                          <div class="headline">Group</div>
+                          <div class="headline">Color</div>
 
                           <v-container fluid>
                             <v-radio-group v-model="radiosGroup" :mandatory="true">
@@ -168,24 +169,42 @@ export default {
     }
   },
   mounted () {
-    axios.get('http://localhost:8082/data/pitdata.csv')
-    //     axios.get('http://localhost:8082/data/dummyData3.csv')
+ //    axios.get('http://localhost:8082/data/pitdata.csv')
+ // //   axios.get('http://localhost:8082/data/dummyData3.csv')
+ //      .then((response) => {
+ //        const dataString = response.data
+ //        const dataIn = d3.csvParse(dataString)
+ // //         .filter(d => d.river === 'WB')
+ //          .map(d => ({
+ //            date: new Date(d.date),
+ //            tag: d.tag,
+ //            xPos: +d.section,
+ // //                       xPos: +d.xPos,
+ //            yPos: Math.random(),
+ // //                       yPos: +d.yPos,
+ //            bodySize: +d.len,
+ //  //                      bodySize: +d.bodySize,
+ //            cohort: d.cohort
+ //          }))
+ //          .splice(0, 5000)
+
+/////////////////////////
+// sucker data
+
+      axios.get('http://localhost:8082/data/suckerViz.csv')
       .then((response) => {
         const dataString = response.data
         const dataIn = d3.csvParse(dataString)
  //         .filter(d => d.river === 'WB')
           .map(d => ({
-            date: new Date(d.date),
-            tag: d.tag,
-            xPos: +d.section,
-    //                    xPos: +d.xPos,
-            yPos: Math.random(),
-    //                    yPos: +d.yPos,
-            bodySize: +d.len,
-   //                     bodySize: +d.bodySize,
-            cohort: d.cohort
+            date: new Date(d.datetime),
+            tag: d.uid,
+            xPos: +d.long,
+            yPos: +d.lat,
+            bodySize: +d.totalLength,
+            cohort: d.releaseLocation
           }))
-          .splice(0, 5000)
+//         .splice(0, 5000)     
 
         // get unique tag ids
         this.uniqueTags = [...new Set(dataIn.map(d => d.tag))]
@@ -258,9 +277,20 @@ console.log("numInds", this.numInd, this.radiosGroup)
     },
     onFilter () {
       this.filteredRows = xf.allFiltered()
+console.log('onFilter',this.selectedCohort)      
     },
     resetXF () {
+      this.cohortData = groupCohort.all()
+      this.selectedCohort = []
       this.filteredRows = xf.all()
+      this.dateDomain = d3.extent(this.filteredRows, d => d.date)
+
+console.log('reset',this.selectedCohort)
+
+     //this.filterCohort(this.cohorts)
+     // this.filteredRows = xf.all()
+     // this.dateDomain = d3.extent(this.filteredRows, d => d.date)
+      //this.selectedCohort = []
     },
     onIndHovered (d) {
       this.currentInd = d.tag

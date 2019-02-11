@@ -121,7 +121,7 @@ export default {
           if (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) {
             return 1
           } else {
-            return 0.15
+            return 0.1
           }
         })
         .on('mouseenter', function (d) {
@@ -142,7 +142,7 @@ export default {
               if (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) {
                  return 1
               } else {
-                return 0.15
+                return 0.1
               }   
             }) 
           
