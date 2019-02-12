@@ -7,7 +7,7 @@ import * as d3 from 'd3'
 
 export default {
   name: 'MoveHistogram',
-  props: ['data', 'width', 'height'],
+  props: ['data', 'width', 'height', 'selectedCohorts'],
   data () {
     return {
       margin: {top: 20, right: 0, bottom: 30, left: 40}
@@ -43,7 +43,7 @@ export default {
       .call(g => g.select(".domain").remove())
 
     this.gBar = svg.append("g")
-        .attr("fill", "steelblue");
+ //       .attr("fill", "steelblue");
 
     this.gXAxis = svg.append("g");
 
@@ -72,14 +72,28 @@ export default {
         .attr("y", d => this.yScale(d.value))
         .attr("height", d => this.yScale(0) - this.yScale(d.value))
         .attr("width", this.xScale.bandwidth())
-        .on('click', (d) => {
+        .attr('fill', 'steelblue')
+        .on('click', d => {
+          console.log("click",  d.key, this)
+          
           this.$emit('click', d.key)
+
+          // const coh = d.key
+          // d3.select('g').select('rect')
+          //   .attr('fill', "grey")//d => that.selectedCohorts.includes(coh) ? "grey" : "steelblue")
         })
-        .on('mouseenter', function (d) {
-          this.svg.selectAll("rect")
-            .attr("fill", 'red') 
+         .on('mouseenter', function (d) {
+          console.log(d,this,that,d.key)
+        //  //that.gBar[d.key] 
+        //  d3.select(this)      
+        //     .attr("fill", 'red') 
        
-        });
+         })
+        // .on('mouseout', function (d) {
+        //  d3.select(this)      
+        //     .attr("fill", 'steelblue') 
+       
+        // })
 
       this.gXAxis.call(this.xAxis)
       this.gYAxis.call(this.yAxis)

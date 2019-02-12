@@ -37,7 +37,7 @@
             <v-divider light></v-divider>
             <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p> 
             <p># Selected Individual(s): {{ selectedInds }}</p> 
-            <p># Selected cohort(s): {{ selectedCohort }}</p> 
+            <p># Selected cohorts: {{ selectedCohorts }}</p> 
 
           </v-flex>
 
@@ -57,18 +57,18 @@
 
 
                     <v-flex xs12>
-                      <v-card color="blue-grey darken-1" class="white--text" height="max-content">
-                        <v-card-title primary-title>
+                      <v-card color="blue-grey darken-1" class="white--text" >
+                        <v-card-title primary-title class="pb-0">
                           <div class="headline">Color</div>
+                        </v-card-title>
 
-                          <v-container fluid fill-height>
+                          <v-card-text  class="py-0 my-0">
+
                             <v-radio-group v-model="radiosGroup" :mandatory="true">
                               <v-radio label="Individual" value="radio-group-individual"></v-radio>
                               <v-radio label="Season" value="radio-group-season"></v-radio>
                             </v-radio-group>
-                          </v-container>
-
-                        </v-card-title>
+                          </v-card-text>
 
                       </v-card>
                     </v-flex>
@@ -80,7 +80,13 @@
                           <div class="headline">Filter</div>
 
                           <div class="text-xs-center"><v-btn small color="blue-grey darken-1" @click="resetXF">Reset</v-btn></div>
-                          <move-histogram :width="175" :height="175" :data="cohortData" @click="filterCohort"></move-histogram>
+                          <move-histogram 
+                            :width="175" 
+                            :height="150" 
+                            :data="cohortData" 
+                            :selectedCohorts="selectedCohorts" 
+                            @click="filterCohorts">                          
+                          </move-histogram>
                           <div class="text-xs-center"><v-btn small color="blue-grey darken-1" @click="buttonInactive">{{ showInactiveLabel }}</v-btn></div>
                         </v-card-title>
 
@@ -93,12 +99,12 @@
                         <v-card-title primary-title>
                           <div class="headline">Select</div>
 
-                          <v-container fluid>
+                          <v-card-text  class="py-0 my-0">
                             <v-radio-group v-model="radiosSelect" :mandatory="true">
                               <v-radio label="Individual" value="radio-select-individual"></v-radio>
                               <v-radio label="Area" value="radio-select-area"></v-radio>
                             </v-radio-group>
-                          </v-container>
+                          </v-card-text>
 
                         </v-card-title>
 
@@ -152,6 +158,7 @@ export default {
       filteredRows: [],
       cohorts: [],
       selectedCohort: [],
+      selectedCohorts: [],
       cohortData: [],
       dateDomain: [],
       xDomain: [0, 1],
@@ -250,12 +257,18 @@ console.log("numInds", this.numInd, this.radiosGroup)
         xf.add(this.dataset)
 
         this.cohortData = groupCohort.all()
+        this.selectedCohorts = this.cohorts
+
+         console.log('beginning',this.cohorts,this.cohortData,this.selectedCohort,this.selectedCohorts)
       })
   },
   watch: {
-    selectedCohort () {
-      this.filterCohort(this.selectedCohort)
-    }
+    // selectedCohort () {
+    //   this.filterCohort(this.selectedCohort)
+    // },
+    //selectedCohorts () {
+    //  this.filterCohorts(this.selectedCohorts)
+   // }
 
   },
   computed: {
@@ -273,18 +286,46 @@ console.log("numInds", this.numInd, this.radiosGroup)
       }
       this.onFilter()
     },
+
+
+
     filterCohort (cohort) {
+            console.log('cohort',cohort,this.selectedCohort,this.selectedCohorts)
       if (this.selectedCohort !== cohort) {
         this.selectedCohort = cohort
       }
-      dimCohort.filterExact(cohort)
+      dimCohort.filterExact(cohort) //.filterFunction(d => select includes cohort)
+      this.onFilter()
+      this.dateDomain = d3.extent(this.filteredRows, d => d.date)
+    },
+
+
+
+    filterCohorts (cohort) {
+ 
+      if (!this.selectedCohorts.includes(cohort)) { // cohort is not included             
+        this.selectedCohorts.push(cohort)  
+        this.selectedCohorts.sort()       
+      } else {
+        const indexToRemove = this.selectedCohorts.indexOf(cohort)       
+        if(indexToRemove > -1) {                
+          this.selectedCohorts.splice(indexToRemove, 1)                               
+        } 
+      }
+
+      dimCohort.filterFunction(d => this.selectedCohorts.includes(d)) 
+
       this.onFilter()
       this.dateDomain = d3.extent(this.filteredRows, d => d.date)
     },
     onFilter () {
       this.filteredRows = xf.allFiltered()
-console.log('onFilter',this.selectedCohort)      
+      console.log('on filter',this.selectedCohorts)
     },
+    fillFilterBars () {
+
+    },
+
     resetXF () {
       this.cohortData = groupCohort.all()
       this.selectedCohort = []
