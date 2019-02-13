@@ -132,7 +132,6 @@ export default {
           //d3.select(this).raise()  
           d3.event.stopPropagation() // does not allow svg.on('click') to fire - so only fires 'circle' not 'circle and 'svg'
           this.updateSelectedIndsOnClick(d)
-    console.log('selectedInds c', this.selectedInds)
         })
     },
     emptySelectedInds() {

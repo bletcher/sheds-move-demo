@@ -7,19 +7,18 @@ import * as d3 from 'd3'
 
 export default {
   name: 'MoveSlider',
-  props: ['domain'],
+  props: ['domain','widthSVG'],
   data () {
     return {
       margin: {top: 0, right: 20, bottom: 30, left: 50},
-      height: 100,
-      width: 550
+      height: 100
     }
   },
   computed: {
     xScale() {
       return d3.scaleTime()
         .domain(this.domain)
-        .range([this.margin.left, this.width - this.margin.right])
+        .range([this.margin.left, this.widthSVG - this.margin.right])
     }
   },
   watch: {
@@ -28,15 +27,16 @@ export default {
     }
   },
   mounted () {
+    console.log('width',this.widthSVG)
     this.svg = d3.select(this.$el)
       .append('svg')
-      .attr('width', this.width)
+      .attr('width', this.widthSVG)
       .attr('height', this.height);
 
     this.brush = d3.brushX()
       .extent([
         [this.margin.left, this.margin.top],
-        [this.width - this.margin.right, this.height - this.margin.bottom]
+        [this.widthSVG - this.margin.right, this.height - this.margin.bottom]
       ])
       .on("start brush end", this.brushed)
 

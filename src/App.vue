@@ -17,8 +17,8 @@
             />
             <move-map 
               :dataset="filteredRows" 
-              :widthSVG="550" 
-              :heightSVG="400" 
+              :widthSVG="widthSVG" 
+              :heightSVG="heightSVG" 
               :xDomain="xDomain" 
               :yDomain="yDomain" 
               :bodySizeDomain="bodySizeDomain"
@@ -38,8 +38,11 @@
               :updateSelectedIndsOnClick="updateSelectedIndsOnClick"
               >
             </move-map>
-            <move-slider :domain="this.dateDomain" 
-              @brushed="filterDate"></move-slider>
+            <move-slider 
+              :domain="this.dateDomain" 
+              @brushed="filterDate"
+              :widthSVG="widthSVG"
+              ></move-slider>
             <p></p>
             <v-divider light></v-divider>
             <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p> 
@@ -138,6 +141,9 @@ import axios from 'axios'
 import * as d3 from 'd3'
 import * as crossfilter from 'crossfilter2'
 
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+
 const xf = crossfilter()
 
 const dimCohort = xf.dimension(d => d.cohort)
@@ -183,7 +189,9 @@ export default {
       radiosGroup: 'radio-group-individual',
       radiosSelect: 'radio-select-individual',
       showInactive: false,
-      showInactiveLabel: "Show inactive"
+      showInactiveLabel: "Show inactive",
+      widthSVG: 700,
+      heightSVG: 500
     }
   },
   mounted () {
@@ -328,7 +336,7 @@ console.log("numInds", this.numInd, this.radiosGroup)
     },
     onFilter () {
       this.filteredRows = xf.allFiltered()
-      console.log('on filter',this.selectedCohorts)
+      //console.log('on filter',this.selectedCohorts)
     },
     fillFilterBars () {
 
@@ -398,7 +406,6 @@ console.log('reset',this.selectedCohort)
       return strokeOut
     },
     updateSelectedIndsOnClick (d) {
-      console.log('selectedInds a', this.selectedInds)
       if(this.radiosSelect === 'radio-select-individual') {
         if (!this.selectedInds.includes(d.tagIndex)) { // ind is not selected              
           this.selectedInds.push(d.tagIndex)
@@ -411,7 +418,6 @@ console.log('reset',this.selectedCohort)
           }             
         }
       }
-            console.log('selectedInds b', this.selectedInds)
     }
 
   }
