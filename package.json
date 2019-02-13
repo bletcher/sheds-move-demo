@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "data": "http-server -p 8082 --cors ./"
+    "data": "http-server -p 8082 --cors ./public"
   },
   "dependencies": {
     "axios": "^0.18.0",

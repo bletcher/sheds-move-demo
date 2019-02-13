@@ -29,7 +29,14 @@
               :radiosGroup="radiosGroup"
               :radiosSelect="radiosSelect"
               :selectedInds="selectedInds"
-              @onEmptySelectedInds="onEmptySelectedInds">
+              @onEmptySelectedInds="onEmptySelectedInds"
+              :getStrokePath="getStrokePath"
+              :getStrokeOpacityPath="getStrokeOpacityPath"
+              :getFillCircle="getFillCircle"
+              :getOpacityCircle="getOpacityCircle"
+              :getStrokeCircle="getStrokeCircle"
+              :updateSelectedIndsOnClick="updateSelectedIndsOnClick"
+              >
             </move-map>
             <move-slider :domain="this.dateDomain" 
               @brushed="filterDate"></move-slider>
@@ -202,7 +209,8 @@ export default {
 /////////////////////////
 // sucker data
 
-      axios.get('http://localhost:8082/data/suckerViz.csv')
+      //axios.get('http://localhost:8082/data/suckerViz.csv')
+      axios.get('data/suckerViz.csv')
       .then((response) => {
         const dataString = response.data
         const dataIn = d3.csvParse(dataString)
@@ -339,7 +347,7 @@ console.log('reset',this.selectedCohort)
      // this.dateDomain = d3.extent(this.filteredRows, d => d.date)
       //this.selectedCohort = []
     },
-    buttonInactive (){
+    buttonInactive () {
       this.showInactive = !this.showInactive
       if (this.showInactive) {
         this.showInactiveLabel = "Show all" }
@@ -360,8 +368,51 @@ console.log('reset',this.selectedCohort)
     onEmptySelectedInds (d) {
       this.selectedInds = d
       //https://codepen.io/Kradek/pen/ZKKGNJ?editors=1010
+    },
+    getStrokePath (d) {
+      //console.log('getColorPath', d)
+      var color = d3.scaleSequential(d3.interpolateSpectral)
+      const colorOut = color(d.values[0].tagIndex / this.numInd / 1)
+      return colorOut
+    },
+    getStrokeOpacityPath (d) {
+      const opacityOut = (this.selectedInds.includes(d.values[0].tagIndex) || this.selectedInds.length === 0) ? 1 : 0.01
+      return opacityOut
+    },
+    getFillCircle (d) {
+      var color = d3.scaleSequential(d3.interpolateSpectral)
+      const colorOut = this.radiosGroup === 'radio-group-individual' ? color(d.tagIndex / this.numInd / 1) : color(d.season / 4 / 1)
+      return colorOut
+    },
+    getOpacityCircle (d) {
+      const opacityOut = (this.selectedInds.includes(d.tagIndex) || this.selectedInds.length === 0) ? 1 : 0.01
+      return opacityOut
+    },
+    // getOpacityCircleMouseOut (d) {
+    //   const that = this
+    //   const opacityOut = (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) ? 1 : 0.01
+    //   return opacityOut
+    // },
+    getStrokeCircle (d) {
+      const strokeOut = d.active === 0 ? "black" : "transparent"
+      return strokeOut
+    },
+    updateSelectedIndsOnClick (d) {
+      console.log('selectedInds a', this.selectedInds)
+      if(this.radiosSelect === 'radio-select-individual') {
+        if (!this.selectedInds.includes(d.tagIndex)) { // ind is not selected              
+          this.selectedInds.push(d.tagIndex)
+          this.selectedInds.sort((a, b) => a - b) // (a,b)... needed to sort numbers             
+        } else { // ind is selected
+          const indexToRemove = this.selectedInds.indexOf(d.tagIndex)
+          if(indexToRemove > -1) {                
+            this.selectedInds.splice(indexToRemove, 1)               
+            this.selectedInds.sort((a, b) => a - b)                 
+          }             
+        }
+      }
+            console.log('selectedInds b', this.selectedInds)
     }
-
 
   }
 }

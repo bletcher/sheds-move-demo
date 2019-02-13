@@ -5,14 +5,15 @@
 <div id="tooltipPositioner">
   <div id="tooltip">
     <div id="tooltipContainer">
-      <div class="description">{{description}}</div>
+      <div class="description">{{ description }}</div>
     </div>
   </div>
 </div>
 </template>
 
 <script>
-  module.exports = {
+  export default {
+//  module.exports = {
     name: 'tooltip',
     props: ['description']
   }
