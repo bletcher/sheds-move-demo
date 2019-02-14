@@ -49,6 +49,8 @@
             <p># Selected Individual(s): {{ selectedInds }}</p> 
             <p># Selected cohorts: {{ selectedCohorts }}</p> 
 
+<div id="mapid"></div>
+
           </v-flex>
 
           <v-flex xs3>
@@ -141,8 +143,10 @@ import axios from 'axios'
 import * as d3 from 'd3'
 import * as crossfilter from 'crossfilter2'
 
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
+
+var csv2geojson = require('csv2geojson');
 
 const xf = crossfilter()
 
@@ -156,6 +160,7 @@ import MoveMap from './components/MoveMap.vue'
 import MoveSlider from './components/MoveSlider.vue'
 import MoveHistogram from './components/MoveHistogram.vue'
 import tooltip from './components/tooltip.vue'
+import MoveMapMap from './components/MoveMapMap.vue'
 
 export default {
   name: 'App',
@@ -163,7 +168,8 @@ export default {
     MoveMap,
     MoveSlider,
     MoveHistogram,
-    tooltip
+    tooltip,
+    MoveMapMap
   },
   data () {
     return {
@@ -195,6 +201,18 @@ export default {
     }
   },
   mounted () {
+    const myMap = L.map('mapid').setView([42.375, -121.925], 13)
+
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+      maxZoom: 18,
+      id: 'mapbox.streets',
+      accessToken: 'pk.eyJ1IjoiYmxldGNoZXIiLCJhIjoiY2pzNHlqMDVnMGE3NzQzbWo1M29pa3l2ZCJ9.W9wn_So2RWf7tIs2W1PkXg'
+    }).addTo(myMap);
+
+L.svg().addTo(myMap)
+
+
  //    axios.get('http://localhost:8082/data/pitdata.csv')
  // //   axios.get('http://localhost:8082/data/dummyData3.csv')
  //      .then((response) => {
@@ -234,6 +252,17 @@ export default {
           }))
 //         .splice(0, 5000)     
 //////////////////////////////////////////////////////////////
+
+
+
+
+var geoJson = csv2geojson.csv2geojson(dataIn, function(err, data) {
+    // err has any parsing errors
+    // data is the data.
+    console.log(data)
+});
+
+
 
         // get unique tag ids
         this.uniqueTags = [...new Set(dataIn.map(d => d.tag))]
@@ -276,7 +305,8 @@ console.log("numInds", this.numInd, this.radiosGroup)
         this.selectedCohorts = this.cohorts
 
          console.log('beginning',this.cohorts,this.cohortData,this.selectedCohort,this.selectedCohorts)
-      })
+
+    }) // axios call
   },
   watch: {
     // selectedCohort () {
@@ -302,8 +332,6 @@ console.log("numInds", this.numInd, this.radiosGroup)
       }
       this.onFilter()
     },
-
-
 
     filterCohort (cohort) {
             console.log('cohort',cohort,this.selectedCohort,this.selectedCohorts)
@@ -423,3 +451,7 @@ console.log('reset',this.selectedCohort)
   }
 }
 </script>
+<style>
+  #mapid { height: 500px; }
+
+</style>

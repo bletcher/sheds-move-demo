@@ -9,10 +9,13 @@
     "data": "http-server -p 8082 --cors ./public"
   },
   "dependencies": {
+    "ajv": "^6.9.1",
     "axios": "^0.18.0",
     "crossfilter2": "^1.4.6",
+    "csv2geojson": "^5.1.1",
     "d3": "^5.7.0",
     "leaflet": "^1.4.0",
+    "leaflet-bing-layer": "^3.3.0",
     "vue": "^2.5.21",
     "vuetify": "^1.3.0"
   },
