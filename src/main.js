@@ -12,3 +12,5 @@ axios.defaults.baseURL = process.env.NODE_ENV === 'production' ? 'http://ecoshed
 new Vue({
   render: h => h(App),
 }).$mount('#app')
+
+export const evt = new Vue();

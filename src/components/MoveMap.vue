@@ -5,10 +5,11 @@
 
 <script>
 import * as d3 from 'd3'
+import evt from '../main.js'
 
 export default {
   name: 'MoveMap',
-  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indHovered', 'indUnhovered', 'radiosGroup', 'radiosSelect', 'selectedInds','showInactive', 'getStrokePath','getStrokeOpacityPath','getFillCircle','getOpacityCircle','getStrokeCircle','updateSelectedIndsOnClick'],
+  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indHovered', 'indUnhovered', 'radiosGroup', 'radiosSelect', 'selectedInds','showInactive', 'getStrokePath','getStrokeOpacityPath','getFillCircle','getOpacityCircle','getStrokeCircle','updateSelectedIndsOnClick','showLines'],
   mounted () {
 
     this.svg = d3.select(this.$el).append('svg')
@@ -36,6 +37,9 @@ export default {
       this.render()
     },
     selectedInds () {
+      this.render()
+    },
+    showLines () {
       this.render()
     }
   },
@@ -74,13 +78,15 @@ export default {
 
       this.svg.selectAll('path').remove()
 
+if(this.showLines) {
+
       this.svg.selectAll('path')
         .data(individuals)
         .enter()
         .append('path')
         .attr('d', d => line(d.values))
         .attr("fill", "none")
-        .attr("stroke", this.getStrokePath) // d => color(d.values[0].tagIndex / this.numInd / 1)) // 1 color/ind, just use first obs
+        .attr("stroke", this.getStrokePath) 
         .attr("stroke-width", 1)
         .attr('stroke-opacity', this.getStrokeOpacityPath)
         .on('mouseenter', function (d, i) {
@@ -95,6 +101,7 @@ export default {
             .filter((d, i) => i === ind)
             .attr("stroke-width", 1)
         })
+}
 
       this.svg.selectAll('circle').remove()
 
@@ -113,7 +120,7 @@ export default {
           const tagIndex = d.tagIndex
           that.svg.selectAll('circle')
             .filter(d => d.tagIndex === tagIndex)
-            .attr('r', 9) // 1 bigger than upper range on bodySizeScale 
+            .attr('r', 12) // 4 bigger than upper range on bodySizeScale 
             .attr('fill-opacity', 1)
 
           that.$emit('indHovered', d)  

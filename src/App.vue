@@ -36,18 +36,27 @@
               :getOpacityCircle="getOpacityCircle"
               :getStrokeCircle="getStrokeCircle"
               :updateSelectedIndsOnClick="updateSelectedIndsOnClick"
+              :showLines="showLines"
               >
             </move-map>
             <move-slider 
               :domain="this.dateDomain" 
               @brushed="filterDate"
               :widthSVG="widthSVG"
-              ></move-slider>
-            <p></p>
+            ></move-slider>
+
+          
             <v-divider light></v-divider>
+            <p></p>
             <p># Filtered Rows: {{filteredRows.length}} of {{ dataset.length }}</p> 
-            <p># Selected Individual(s): {{ selectedInds }}</p> 
-            <p># Selected cohorts: {{ selectedCohorts }}</p> 
+            <p>Selected Individual(s): {{ selectedInds }}</p> 
+            <p>Selected cohorts: {{ selectedCohorts }}</p> 
+
+            <v-switch
+              v-model="showLines"
+              :label="'Show Lines?'"
+            ></v-switch>
+
 
 <div id="mapid"></div>
 
@@ -80,6 +89,7 @@
                               <v-radio label="Individual" value="radio-group-individual"></v-radio>
                               <v-radio label="Season" value="radio-group-season"></v-radio>
                             </v-radio-group>
+
                           </v-card-text>
 
                       </v-card>
@@ -142,6 +152,7 @@
 import axios from 'axios'
 import * as d3 from 'd3'
 import * as crossfilter from 'crossfilter2'
+import { evt } from './main'
 
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
@@ -160,7 +171,6 @@ import MoveMap from './components/MoveMap.vue'
 import MoveSlider from './components/MoveSlider.vue'
 import MoveHistogram from './components/MoveHistogram.vue'
 import tooltip from './components/tooltip.vue'
-import MoveMapMap from './components/MoveMapMap.vue'
 
 export default {
   name: 'App',
@@ -168,8 +178,7 @@ export default {
     MoveMap,
     MoveSlider,
     MoveHistogram,
-    tooltip,
-    MoveMapMap
+    tooltip
   },
   data () {
     return {
@@ -196,6 +205,7 @@ export default {
       radiosSelect: 'radio-select-individual',
       showInactive: false,
       showInactiveLabel: "Show inactive",
+      showLines: true,
       widthSVG: 700,
       heightSVG: 500
     }
@@ -209,8 +219,6 @@ export default {
       id: 'mapbox.streets',
       accessToken: 'pk.eyJ1IjoiYmxldGNoZXIiLCJhIjoiY2pzNHlqMDVnMGE3NzQzbWo1M29pa3l2ZCJ9.W9wn_So2RWf7tIs2W1PkXg'
     }).addTo(myMap);
-
-L.svg().addTo(myMap)
 
 
  //    axios.get('http://localhost:8082/data/pitdata.csv')
@@ -333,17 +341,15 @@ console.log("numInds", this.numInd, this.radiosGroup)
       this.onFilter()
     },
 
-    filterCohort (cohort) {
-            console.log('cohort',cohort,this.selectedCohort,this.selectedCohorts)
-      if (this.selectedCohort !== cohort) {
-        this.selectedCohort = cohort
-      }
-      dimCohort.filterExact(cohort) //.filterFunction(d => select includes cohort)
-      this.onFilter()
-      this.dateDomain = d3.extent(this.filteredRows, d => d.date)
-    },
-
-
+    // filterCohort (cohort) {
+    //         console.log('cohort',cohort,this.selectedCohort,this.selectedCohorts)
+    //   if (this.selectedCohort !== cohort) {
+    //     this.selectedCohort = cohort
+    //   }
+    //   dimCohort.filterExact(cohort) //.filterFunction(d => select includes cohort)
+    //   this.onFilter()
+    //   this.dateDomain = d3.extent(this.filteredRows, d => d.date)
+    // },
 
     filterCohorts (cohort) {
  
@@ -447,6 +453,10 @@ console.log('reset',this.selectedCohort)
         }
       }
     }
+//    switchLines () {
+      //jwant to run render - better to run in MoveMap
+ //     console.log('switchLines',showLines)
+ //   }
 
   }
 }
