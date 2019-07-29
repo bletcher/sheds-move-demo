@@ -15,7 +15,12 @@
               v-if="currentInd"
               :description="currentIndDescription"
             />
-            <move-map 
+
+          <ice-map-ben2 id="ice-map"
+            :options="map.options" 
+            :overlays="map.overlays">
+            
+            <move-map-layer2 id="move-layer" 
               :dataset="filteredRows" 
               :widthSVG="widthSVG" 
               :heightSVG="heightSVG" 
@@ -36,9 +41,10 @@
               :getOpacityCircle="getOpacityCircle"
               :getStrokeCircle="getStrokeCircle"
               :updateSelectedIndsOnClick="updateSelectedIndsOnClick"
-              :showLines="showLines"
-              >
-            </move-map>
+              :showLines="showLines" >
+            </move-map-layer2>
+          </ice-map-ben2>
+
             <move-slider 
               :domain="this.dateDomain" 
               @brushed="filterDate"
@@ -56,6 +62,7 @@
               v-model="showLines"
               :label="'Show Lines?'"
             ></v-switch>
+
 
 
 <div id="mapid"></div>
@@ -167,18 +174,22 @@ const groupCohort = dimCohort.group()
 const dimDate = xf.dimension(d => d.date)
 //const groupDate = dimCohort.group()
 
-import MoveMap from './components/MoveMap.vue'
+import MoveMapLayer2 from './components/MoveMapLayer2.vue'
 import MoveSlider from './components/MoveSlider.vue'
 import MoveHistogram from './components/MoveHistogram.vue'
 import tooltip from './components/tooltip.vue'
+import IceMapBen2 from './components/IceMapBen2.vue'
+import IceMapLayerBen from './components/IceMapLayerBen.vue'
 
 export default {
   name: 'App',
   components: {
-    MoveMap,
+    MoveMapLayer2,
     MoveSlider,
     MoveHistogram,
-    tooltip
+    tooltip,
+    IceMapBen2,
+    IceMapLayerBen
   },
   data () {
     return {
@@ -207,18 +218,57 @@ export default {
       showInactiveLabel: "Show inactive",
       showLines: true,
       widthSVG: 700,
-      heightSVG: 500
+      heightSVG: 500,
+
+      map: {
+        options: {
+          center: [42.375, -121.925],
+          zoom: 12,
+          maxZoom: 18,
+          minZoom: 5
+        },
+        overlays: [
+          {
+            url: 'http://ecosheds.org:8080/geoserver/wms',
+            label: 'Major Streams',
+            layer: 'sheds:flowlines_strahler_3',
+            visible: true
+          }, {
+            url: 'http://ecosheds.org:8080/geoserver/wms',
+            label: 'Minor Streams',
+            layer: 'sheds:detailed_flowlines',
+            minZoom: 10
+          }, {
+            url: 'http://ecosheds.org:8080/geoserver/wms',
+            label: 'NHD Waterbodies',
+            layer: 'sheds:waterbodies'
+          }, {
+            url: 'http://ecosheds.org:8080/geoserver/wms',
+            label: 'HUC8 Boundaries',
+            layer: 'sheds:wbdhu8'
+          }, {
+            url: 'http://ecosheds.org:8080/geoserver/wms',
+            label: 'HUC12 Boundaries',
+            layer: 'sheds:wbdhu12',
+            minZoom: 10
+          }
+        ]
+      },
+      catchments: {
+        layer: null,
+        selected: null
+      }
     }
   },
   mounted () {
-    const myMap = L.map('mapid').setView([42.375, -121.925], 13)
+    // const myMap = L.map('mapid').setView([42.375, -121.925], 13)
 
-    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-      maxZoom: 18,
-      id: 'mapbox.streets',
-      accessToken: 'pk.eyJ1IjoiYmxldGNoZXIiLCJhIjoiY2pzNHlqMDVnMGE3NzQzbWo1M29pa3l2ZCJ9.W9wn_So2RWf7tIs2W1PkXg'
-    }).addTo(myMap);
+    // L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    //   attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    //   maxZoom: 18,
+    //   id: 'mapbox.streets',
+    //   accessToken: 'pk.eyJ1IjoiYmxldGNoZXIiLCJhIjoiY2pzNHlqMDVnMGE3NzQzbWo1M29pa3l2ZCJ9.W9wn_So2RWf7tIs2W1PkXg'
+    // }).addTo(myMap);
 
 
  //    axios.get('http://localhost:8082/data/pitdata.csv')
@@ -254,6 +304,7 @@ export default {
             tag: d.uid,
             xPos: +d.long,
             yPos: +d.lat,
+            latLng: new L.LatLng(+d.lat, +d.long),
             bodySize: +d.totalLength,
             cohort: d.releaseLocation,
             active: +d.active
@@ -262,14 +313,16 @@ export default {
 //////////////////////////////////////////////////////////////
 
 
+// http://bl.ocks.org/kristin-henry-sf/2ffa2a4d06412db552f627b48b85cf97
+// d.LatLng = new L.LatLng(d.loc[0], d.loc[1]);
 
-
-var geoJson = csv2geojson.csv2geojson(dataIn, function(err, data) {
-    // err has any parsing errors
-    // data is the data.
-    console.log(data)
-});
-
+// var csv2geojson = require('csv2geojson');
+// var geoJson = csv2geojson.csv2geojson(dataIn, function(err, data) {
+//     // err has any parsing errors
+//     // data is the data.
+//     console.log('geoJson1',data)
+// });
+// console.log('geoJson2',geoJson)
 
 
         // get unique tag ids
@@ -463,5 +516,79 @@ console.log('reset',this.selectedCohort)
 </script>
 <style>
   #mapid { height: 500px; }
+  #move-map { height: 500px; width: 700px; }
 
+body {
+  padding: 0px;
+  margin: 0px;
+  font-family: "proxima-nova-alt", Helvetica, Arial, sans-serif;
+}
+a {
+  cursor: pointer;
+}
+.ice-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.ice-left-sidebar {
+  display: inline;
+  position: absolute;
+  top: 60px;
+  left: 0px;
+  width: 440px;
+  z-index: 3000;
+}
+.ice-right-sidebar {
+  display: inline;
+  position: absolute;
+  top: 60px;
+  right: 0px;
+  width: 475px;
+  z-index: 3000;
+}
+.ice-box {
+  padding: 10px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-bottom-right-radius: 2px;
+  box-shadow: 0px 0px 3px 0px #aaa;
+}
+.ice-box-title {
+  font-weight: bold;
+  font-size: 1.1em;
+  font-variant: small-caps;
+  margin-bottom: 5px;
+}
+.ice-box-label {
+  font-weight: bold;
+  font-size: 1.1em;
+  font-variant: small-caps;
+  text-align: right;
+  margin-top: 5px
+}
+.ice-filter-legend {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+.ice-filter-container {
+  max-height: 460px;
+  margin-top: 5px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.ice-loading {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding-top: 50px;
+  z-index: 5000;
+  background: rgba(0, 0, 0, 0.7);
+  text-align: center;
+  color: #f5f5f5;
+}
 </style>

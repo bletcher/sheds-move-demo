@@ -5,12 +5,17 @@
 
 <script>
 import * as d3 from 'd3'
-import evt from '../main.js'
+//import evt from '../main.js'
+import * as topojson from 'topojson-client'
+import { evt } from '../main'
 
 export default {
   name: 'MoveMap',
   props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indHovered', 'indUnhovered', 'radiosGroup', 'radiosSelect', 'selectedInds','showInactive', 'getStrokePath','getStrokeOpacityPath','getFillCircle','getOpacityCircle','getStrokeCircle','updateSelectedIndsOnClick','showLines'],
   mounted () {
+
+console.log('mounted Movemap', this.map)
+
 
     this.svg = d3.select(this.$el).append('svg')
       .attr('width', this.widthSVG)
@@ -28,6 +33,10 @@ export default {
       emptyInds: this.selectedInds,
       circles: null
     }
+  },
+  computed: {
+
+
   },
   watch: {
     dataset () {
@@ -59,6 +68,7 @@ export default {
       const individuals = d3.nest()
         .key(d => d.tag)
         .entries(this.dataset)
+console.log('inds', individuals)
 
       var color = d3.scaleSequential(d3.interpolateSpectral)
 //      var color = d3.scaleOrdinal(d3.schemeCategory10)
@@ -78,30 +88,29 @@ export default {
 
       this.svg.selectAll('path').remove()
 
-if(this.showLines) {
-
-      this.svg.selectAll('path')
-        .data(individuals)
-        .enter()
-        .append('path')
-        .attr('d', d => line(d.values))
-        .attr("fill", "none")
-        .attr("stroke", this.getStrokePath) 
-        .attr("stroke-width", 1)
-        .attr('stroke-opacity', this.getStrokeOpacityPath)
-        .on('mouseenter', function (d, i) {
-          const ind = i
-          that.svg.selectAll('path')
-            .filter((d, i) => i === ind)
-            .attr("stroke-width", 2)
-        })
-        .on('mouseout', function (d, i) {
-          const ind = i
-          that.svg.selectAll('path')
-            .filter((d, i) => i === ind)
-            .attr("stroke-width", 1)
-        })
-}
+      if(this.showLines) {
+        this.svg.selectAll('path')
+          .data(individuals)
+          .enter()
+          .append('path')
+          .attr('d', d => line(d.values))
+          .attr("fill", "none")
+          .attr("stroke", this.getStrokePath) 
+          .attr("stroke-width", 1)
+          .attr('stroke-opacity', this.getStrokeOpacityPath)
+          .on('mouseenter', function (d, i) {
+            const ind = i
+            that.svg.selectAll('path')
+              .filter((d, i) => i === ind)
+              .attr("stroke-width", 2)
+          })
+          .on('mouseout', function (d, i) {
+            const ind = i
+            that.svg.selectAll('path')
+              .filter((d, i) => i === ind)
+              .attr("stroke-width", 1)
+          })
+      }
 
       this.svg.selectAll('circle').remove()
 

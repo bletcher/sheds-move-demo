@@ -14,25 +14,51 @@ export default {
   props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indHovered', 'indUnhovered', 'radiosGroup', 'radiosSelect', 'selectedInds','showInactive', 'getStrokePath','getStrokeOpacityPath','getFillCircle','getOpacityCircle','getStrokeCircle','updateSelectedIndsOnClick','showLines'],
   mounted () {
 
-    this.svg = d3.select(this.$el).append('svg')
+console.log('moveMap', this.$parent,this.$parent.svg)
+/*
+this.svg = this.$parent.select('leaflet-overlay-pane')
       .attr('width', this.widthSVG)
       .attr('height', this.heightSVG)
       .on('click', d => {
           this.emptySelectedInds()
       })
-    .append("g")
+      .append("g")
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
+ 
+  this.g = this.$parent.svg.select('g.leaflet-zoom-hide')
+      .append('g')
+      .on('click', d => {
+          this.emptySelectedInds()
+      })
+*/
+     this.svg = d3.select('.leaflet-overlay-pane').append('svg')
+       .attr('width', this.widthSVG)
+       .attr('height', this.heightSVG)
+       .on('click', d => {
+           this.emptySelectedInds()
+       })
+      .append("g")
+       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
 
     this.render()
   },
   data () {
     return {
       emptyInds: this.selectedInds,
-      circles: null
+      circles: null,
+      g: null
     }
   },
   computed: {
-
+    map () {
+      return this.$parent.map
+    },
+    zoomLevel () {
+      return this.$parent.zoomLevel
+    },
+    pointRadius () {
+      return this.zoomLevel - 2
+    }
 
   },
   watch: {
@@ -72,21 +98,21 @@ console.log('inds', individuals)
 
       const line = d3.line().x(d => xScale(d.xPos)).y(d => yScale(d.yPos))
 
-      this.svg.selectAll('g').remove()
+      this.g.remove()
 
-      this.svg.append("g")
+      this.g
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(xScale)) 
 
-      this.svg.append("g")
+      this.g
         .attr("class", "y axis")
         .call(d3.axisLeft(yScale))  
 
-      this.svg.selectAll('path').remove()
+      this.g.selectAll('path').remove()
 
       if(this.showLines) {
-        this.svg.selectAll('path')
+        this.g.selectAll('path')
           .data(individuals)
           .enter()
           .append('path')
@@ -97,21 +123,21 @@ console.log('inds', individuals)
           .attr('stroke-opacity', this.getStrokeOpacityPath)
           .on('mouseenter', function (d, i) {
             const ind = i
-            that.svg.selectAll('path')
+            that.g.selectAll('path')
               .filter((d, i) => i === ind)
               .attr("stroke-width", 2)
           })
           .on('mouseout', function (d, i) {
             const ind = i
-            that.svg.selectAll('path')
+            that.g.selectAll('path')
               .filter((d, i) => i === ind)
               .attr("stroke-width", 1)
           })
       }
 
-      this.svg.selectAll('circle').remove()
+      this.g.selectAll('circle').remove()
 
-      var circles = this.svg.selectAll('circle')
+      var circles = this.g.selectAll('circle')
         .data(this.dataset)
         .enter()
         .append('circle')
@@ -124,7 +150,7 @@ console.log('inds', individuals)
         .attr('stroke-opacity', this.getOpacityCircle)
         .on('mouseenter', function (d) {
           const tagIndex = d.tagIndex
-          that.svg.selectAll('circle')
+          that.g.selectAll('circle')
             .filter(d => d.tagIndex === tagIndex)
             .attr('r', 12) // 4 bigger than upper range on bodySizeScale 
             .attr('fill-opacity', 1)
@@ -133,7 +159,7 @@ console.log('inds', individuals)
         })
         .on('mouseout', function (d) {
           const tagIndex = d.tagIndex
-          that.svg.selectAll('circle')
+          that.g.selectAll('circle')
             .filter(d => d.tagIndex === tagIndex)
             .attr('r', d => bodySizeScale(d.bodySize))
             .attr('fill-opacity', (that.selectedInds.includes(d.tagIndex) || that.selectedInds.length === 0) ? 1 : 0.01) // using getOpacityCircle doesn't work here, this/that problem
@@ -143,7 +169,7 @@ console.log('inds', individuals)
         .on('click', d => {
           console.log("tagIndex",d.tagIndex)
           //d3.select(this).raise()  
-          d3.event.stopPropagation() // does not allow svg.on('click') to fire - so only fires 'circle' not 'circle and 'svg'
+          d3.event.stopPropagation() // does not allow g.on('click') to fire - so only fires 'circle' not 'circle and 'g'
           this.updateSelectedIndsOnClick(d)
         })
     },

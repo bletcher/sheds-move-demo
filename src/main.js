@@ -9,8 +9,9 @@ Vue.config.productionTip = false
 //axios.defaults.baseURL = config[process.env.NODE_ENV].api.url
 axios.defaults.baseURL = process.env.NODE_ENV === 'production' ? 'http://ecosheds.org/dev/tagmove/' : 'http://localhost:8082/'
 
+export const evt = new Vue();
+
 new Vue({
   render: h => h(App),
 }).$mount('#app')
 
-export const evt = new Vue();

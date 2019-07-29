@@ -1,34 +1,28 @@
 <script>
-import { mapGetters } from 'vuex'
+//import { mapGetters } from 'vuex'
 import axios from 'axios'
 import * as d3 from 'd3'
 import * as topojson from 'topojson-client'
-import d3Tip from 'd3-tip'
-import VariableMixin from '../mixins/variable'
-import evt from '../event-bus'
+//import d3Tip from 'd3-tip'
+//import VariableMixin from '../mixins/variable'
+//import evt from '../event-bus'
+import { evt } from '../main'
 export default {
-  name: 'IceMapLayer',
-  props: ['id', 'setBounds', 'layer', 'getFill', 'getValue', 'getLabel', 'selected'],
-  mixins: [VariableMixin],
+  name: 'IceMapLayerBen',
+  props: ['dataset', 'margin', 'widthSVG', 'heightSVG', 'xDomain', 'yDomain', 'bodySizeDomain', 'numInd', 'indHovered', 'indUnhovered', 'radiosGroup', 'radiosSelect', 'selectedInds','showInactive', 'getStrokePath','getStrokeOpacityPath','getFillCircle','getOpacityCircle','getStrokeCircle','updateSelectedIndsOnClick','showLines'],
+//  mixins: [VariableMixin],
   data () {
     return {
       data: null,
       g: null,
-      tip: d3Tip()
-        .attr('class', 'd3-tip')
+      emptyInds: this.selectedInds,
+      circles: null//,
+//      tip: d3Tip()
+//        .attr('class', 'd3-tip')
     }
   },
   computed: {
-    ...mapGetters(['theme', 'variable']),
-    path () {
-      const map = this.map
-      function projectPoint (x, y) {
-        const point = map.latLngToLayerPoint(new L.LatLng(y, x))
-        this.stream.point(point.x, point.y)
-      }
-      const transform = d3.geoTransform({ point: projectPoint })
-      return d3.geoPath().projection(transform).pointRadius(this.pointRadius)
-    },
+//    ...mapGetters(['theme', 'variable']),
     map () {
       return this.$parent.map
     },
@@ -41,65 +35,34 @@ export default {
   },
   mounted () {
     console.log(`map-layer(${this.id}):mounted`)
-    evt.$on('map:zoom', this.resize)
-    evt.$on('map:render', this.renderFill)
-    this.g = this.$parent.svg.select('g.leaflet-zoom-hide')
-      .append('g')
-    this.g.call(this.tip)
-    if (this.layer) {
-      this.loadLayer(this.layer)
-    }
-    this.setTipHtml()
+//    evt.$on('map:zoom', this.resize)
+//    evt.$on('map:render', this.renderFill)
+//    this.g = this.$parent.svg.select('g.leaflet-zoom-hide')
+//      .append('g')
   },
   beforeDestroy () {
-    console.log(`map-layer(${this.id}):beforeDestroy`)
-    evt.$off('map:zoom', this.resize)
-    evt.$off('map:render', this.renderFill)
-    this.tip.destroy()
-    this.g.selectAll('path').remove()
-    this.g.remove()
-    this.data = null
+    // console.log(`map-layer(${this.id}):beforeDestroy`)
+    // evt.$off('map:zoom', this.resize)
+    // evt.$off('map:render', this.renderFill)
+    // this.g.remove()
+    // this.data = null
   },
   watch: {
-    variable () {
-      console.log(`map-layer(${this.id}):watch variable`)
-      this.setTipHtml()
+
+    dataset () {
+      this.render()
     },
-    layer () {
-      console.log(`map-layer(${this.id}):watch layer`)
-      if (!this.layer) return
-      return this.loadLayer(this.layer)
+    radiosGroup () {
+      this.render()
     },
-    selected () {
-      console.log(`map-layer(${this.id}):watch selected`)
-      this.renderSelected()
+    selectedInds () {
+      this.render()
+    },
+    showLines () {
+      this.render()
     }
   },
   methods: {
-    setTipHtml () {
-      this.tip.html(d => `
-        <strong>${this.getLabel(d)}</strong><br>
-        ${this.variable.label}: ${this.getValue(d) ? this.valueFormat(this.getValue(d)) : 'N/A'}
-      `)
-    },
-    loadLayer (layer) {
-      console.log(`map-layer(${this.id}):loadLayer`, layer)
-      if (!layer) return
-      this.g
-        .selectAll('path')
-        .remove()
-      return axios.get(`${layer.url}`)
-        .then(response => response.data)
-        .then((data) => {
-          // console.log(`map-layer(${this.id}):loadLayer`, layer, 'parsing')
-          let geoJson = data
-          if (layer.type === 'topojson') {
-            geoJson = topojson.feature(data, data.objects[layer.object])
-          }
-          this.data = Object.freeze(geoJson)
-          this.resize()
-        })
-    },
     resize () {
       console.log(`map-layer(${this.id}):resize`)
       if (this.setBounds) {
@@ -109,46 +72,42 @@ export default {
       this.render()
     },
     render () {
-      console.log(`map-layer(${this.id}):render`)
-      if (!this.data) return
-      const features = this.data.features || []
-      const tip = this.tip
-      const vm = this
-      const paths = this.g
-        .selectAll('path')
-        .data(features, d => `${this.theme.id}-${d.id}`)
-      paths.enter()
-        .append('path')
-        .style('cursor', 'pointer')
-        .style('pointer-events', 'visible')
-        .on('click', function (d) {
-          !vm.$parent.disableClick && vm.$emit('click', d)
-          this.parentNode.appendChild(this) // move to front
-        })
-        .on('mouseenter', function (d) {
-          if (!vm.selected) {
-            // move to front if nothing selected
-            this.parentNode.appendChild(this)
-          } else {
-            // move to 2nd from front, behind selected
-            const lastChild = this.parentNode.lastChild
-            this.parentNode.insertBefore(this, lastChild)
-          }
-          d3.select(this)
-            .style('stroke', 'white')
-            .style('stroke-width', '1')
-          tip.show(d, this)
-        })
-        .on('mouseout', function (d) {
-          d3.select(this)
-            .style('stroke', vm.isSelected(d) ? 'red' : null)
-            .style('stroke-width', null)
-          tip.hide(d, this)
-        })
-        .merge(paths)
-        .attr('d', this.path)
-        .style('fill', this.getFill)
-      paths.exit().remove()
+
+      if (!this.dataset) return
+
+      const that = this // for mouseover
+
+      const width = this.widthSVG - this.margin.left - this.margin.right 
+      const height = this.heightSVG - this.margin.top - this.margin.bottom;
+
+      const xScale = d3.scaleLinear().domain(this.xDomain).range([0, width])
+      const yScale = d3.scaleLinear().domain(this.yDomain).range([height, 0])
+      const bodySizeScale = d3.scaleLinear().domain(this.bodySizeDomain).range([3, 8])
+
+      const individuals = d3.nest()
+        .key(d => d.tag)
+        .entries(this.dataset)
+console.log('inds', individuals)
+
+      var color = d3.scaleSequential(d3.interpolateSpectral)
+//      var color = d3.scaleOrdinal(d3.schemeCategory10)
+
+      const line = d3.line().x(d => xScale(d.xPos)).y(d => yScale(d.yPos))
+
+      // this.svg.selectAll('g').remove()
+
+      // this.svg.append("g")
+      //   .attr("class", "x axis")
+      //   .attr("transform", "translate(0," + height + ")")
+      //   .call(d3.axisBottom(xScale)) 
+
+      // this.svg.append("g")
+      //   .attr("class", "y axis")
+      //   .call(d3.axisLeft(yScale))  
+
+
+
+
     },
     renderFill () {
       // console.log(`map-layer(${this.id}):renderFill`)

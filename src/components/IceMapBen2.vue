@@ -8,9 +8,12 @@
 import * as d3 from 'd3'
 import '../libs/controlTransparency'
 import 'leaflet/dist/leaflet.css'
-import evt from '../event-bus'
+//import evt from '../event-bus'
+import { evt } from '../main'
 require('leaflet-bing-layer')
+
 export default {
+  name: 'IceMapBen2',
   props: {
     options: {
       type: Object,
@@ -24,7 +27,7 @@ export default {
   },
   data () {
     return {
-      ready: false,
+      ready: true, //false,
       map: null,
       disableClick: false,
       bounds: null,
@@ -32,6 +35,7 @@ export default {
     }
   },
   mounted () {
+    console.log("mountedMap", this.$el)
     this.map = L.map(this.$el, {
       ...this.options
     })
@@ -58,13 +62,18 @@ export default {
       overlays[key] = layer
       if (d.visible) layer.addTo(this.map)
     })
+
     L.control.transparency({ position: 'topleft' }).addTo(this.map)
     L.control.layers(basemaps, overlays, {
       position: 'topleft',
       collapsed: true
     }).addTo(this.map)
+
     const svg = d3.select(this.map.getPanes().overlayPane).append('svg')
-    svg.append('g').attr('class', 'leaflet-zoom-hide')
+//    svg.append('g').attr('class', 'leaflet-zoom-hide')
+
+console.log('SVG',this.map.getPanes().overlayPane)
+
     let moveTimeout
     this.map.on('movestart', () => {
       window.clearTimeout(moveTimeout)
@@ -87,9 +96,9 @@ export default {
     evt.$off('map:zoomTo', this.zoomTo)
   },
   computed: {
-    svg () {
-      return d3.select(this.map.getPanes().overlayPane).select('svg')
-    }
+     svg () {
+       return d3.select(this.map.getPanes().overlayPane).select('svg')
+     }
   },
   methods: {
     resize (bounds) {
@@ -112,15 +121,23 @@ export default {
 </script>
 
 <style>
-.ice-map {
+/* .ice-map {
   width: 100%;
   height: 100vh;
-}
-div.leaflet-top.leaflet-left {
+} */
+.ice-map {
+  width: 700px;
+  height: 500px;
+} 
+/*div.leaflet-top.leaflet-left {
   margin-left: 450px;
   margin-top: 60px;
-}
-.leaflet-touch .leaflet-control-layers-toggle {
+} */
+div.leaflet-top.leaflet-left {
+  margin-left: 5px;
+  margin-top: 5px;
+} 
+ .leaflet-touch .leaflet-control-layers-toggle {
   width: 30px !important;
   height: 30px !important;
 }

@@ -8,9 +8,12 @@
 import * as d3 from 'd3'
 import '../libs/controlTransparency'
 import 'leaflet/dist/leaflet.css'
-import evt from '../event-bus'
+//import evt from '../event-bus'
+import { evt } from '../main'
 require('leaflet-bing-layer')
+
 export default {
+  name: 'IceMapBen',
   props: {
     options: {
       type: Object,
@@ -24,7 +27,7 @@ export default {
   },
   data () {
     return {
-      ready: false,
+      ready: true, //false,
       map: null,
       disableClick: false,
       bounds: null,
@@ -112,15 +115,23 @@ export default {
 </script>
 
 <style>
-.ice-map {
+/* .ice-map {
   width: 100%;
   height: 100vh;
-}
-div.leaflet-top.leaflet-left {
+} */
+.ice-map {
+  width: 700px;
+  height: 500px;
+} 
+/*div.leaflet-top.leaflet-left {
   margin-left: 450px;
   margin-top: 60px;
-}
-.leaflet-touch .leaflet-control-layers-toggle {
+} */
+div.leaflet-top.leaflet-left {
+  margin-left: 5px;
+  margin-top: 5px;
+} 
+ .leaflet-touch .leaflet-control-layers-toggle {
   width: 30px !important;
   height: 30px !important;
 }
